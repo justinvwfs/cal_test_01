@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BSD專屬精算核心 - 葵花寶典加強版</title
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root { --vw-blue: #001e50; --vw-light-blue: #00b0f0; --glass: rgba(255, 255, 255, 0.95); --text: #1e293b; --danger: #e11d48; --success: #10b981; --warning: #f59e0b; --agent-color: #0284c7; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f1f5f9; margin: 0; padding: 10px; color: var(--text); -webkit-text-size-adjust: 100%; }
+        
+        .main-container { max-width: 1400px; margin: auto; position: relative; }
+        .view-section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards & Titles */
+        .glass-card { background: var(--glass); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,30,80,0.08); border-top: 4px solid var(--vw-blue); margin-bottom: 20px; position: relative; }
+        .section-title { font-size: 1.3rem; font-weight: 900; color: var(--vw-blue); margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .author-tag { font-size: 11px; color: var(--vw-light-blue); font-weight: bold; margin-left: 5px; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
+        .input-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: bold; color: var(--vw-blue); box-sizing: border-box; transition: 0.2s; }
+        .input-group input:focus { border-color: var(--vw-light-blue); outline: none; box-shadow: 0 0 0 3px rgba(0,176,240,0.1); }
+        .req { color: var(--danger); margin-left: 3px; }
+
+        /* Buttons */
+        .btn { cursor: pointer; border: none; font-weight: bold; border-radius: 6px; touch-action: manipulation; transition: 0.2s; white-space: nowrap; }
+        .btn:active { transform: scale(0.98); }
+        .btn-calc { width: 100%; background: var(--vw-blue); color: white; padding: 14px; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-factory-entry { background: linear-gradient(135deg, #00b0f0 0%, #0077cc 100%); color: white; padding: 8px 16px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 176, 240, 0.3); display: flex; align-items: center; gap: 5px; }
+        .btn-back { background: #64748b; color: white; padding: 8px 16px; font-size: 13px; border-radius: 20px; }
+        .btn-super-gen { width: 100%; background: linear-gradient(135deg, #001e50 0%, #004e92 100%); color: white; padding: 16px; font-size: 18px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 78, 146, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .btn-reset { width: 100%; background: #f1f5f9; color: #64748b; padding: 10px; margin-top: 10px; }
+        
+        /* Excel Button Styling */
+        .btn-excel { background: #107c41; color: white; padding: 8px 15px; font-size: 13px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(16, 124, 65, 0.2); }
+        .btn-excel:hover { background: #0c5e31; }
+
+        .btn-rev { background: var(--warning); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
+        .btn-del { background: var(--danger); color: white; font-size: 11px; padding: 4px 10px; border-radius: 4px; }
+        .btn-gen-row { background: var(--success); color: white; padding: 12px; font-size: 15px; width: 100%; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
+        .btn-export { background: var(--vw-light-blue); color: white; padding: 8px 15px; font-size: 13px; }
+
+        .check-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+        .check-wrap input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .check-label { font-size: 11px; font-weight: bold; color: var(--danger); }
+
+        /* Single Mode Layout */
+        .single-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .res-box { background: #f0f9ff; border: 2px dashed var(--vw-light-blue); padding: 10px; border-radius: 8px; margin: 15px 0; text-align: center; }
+        .res-val { font-size: 1.5rem; font-weight: 900; }
+        .phase-header, .phase-grid { display: grid; grid-template-columns: 60px 1fr 65px; gap: 8px; margin-bottom: 5px; }
+        .dashboard { background: linear-gradient(135deg, var(--vw-blue) 0%, #003380 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .dash-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .dash-item { border-left: 3px solid var(--vw-light-blue); padding-left: 10px; }
+        .dash-val { font-size: 1.3rem; font-weight: bold; margin-top: 2px; }
+        .payment-summary { font-size: 13px; line-height: 1.5; background: rgba(255,255,255,0.08); padding: 10px; border-radius: 6px; }
+
+        /* Factory Layout */
+        .factory-config { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        .factory-range { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; align-items: end; }
+        .term-selector { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .term-check { display: flex; align-items: center; gap: 4px; background: white; padding: 6px 12px; border-radius: 20px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .term-check:hover { background: #f1f5f9; }
+
+        /* Tables */
+        .sf-table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 600px; margin-bottom: 20px; background: white; }
+        .sf-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; white-space: nowrap; }
+        .sf-table th, .sf-table td { padding: 12px 8px; border: 1px solid #e2e8f0; vertical-align: middle; }
+        .sf-table th { background: var(--vw-blue); color: white; position: sticky; top: 0; z-index: 10; font-weight: bold; }
+        .sf-table th.row-header { position: sticky; left: 0; z-index: 11; background: var(--vw-blue); border-right: 2px solid #334155; }
+        .sf-table td.row-header { position: sticky; left: 0; z-index: 9; background: #f8fafc; font-weight: 900; border-right: 2px solid #cbd5e1; color: var(--vw-blue); }
+        .sf-table tr:nth-child(even) { background: #f8fafc; }
+
+        /* Amort Table Customization */
+        #amortTable td { color: #334155; font-weight: bold; }
+        #amortTable td:nth-child(2) { color: var(--vw-blue); font-weight: 900; font-size: 14px; }
+        #amortTable td:nth-child(5) { color: #94a3b8; font-weight: normal; }
+
+        .res-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+        .res-pmt { font-weight: 900; font-size: 15px; color: var(--text); }
+        .res-rate { font-size: 11px; color: var(--vw-light-blue); font-weight: bold; }
+        .res-sub { font-size: 10px; font-weight: bold; line-height: 1.3; text-align: center; display: flex; flex-direction: column; }
+
+        /* Manual Input Area */
+        .manual-input-area { background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .manual-top-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .phases-wrapper { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+        .phases-label { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px; }
+        .phases-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+        .phase-box { display: flex; flex-direction: column; min-width: 70px; background: white; padding: 5px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .phase-box label { font-size: 10px; color: #64748b; font-weight: bold; text-align: center; margin-bottom: 3px; }
+        .phase-box input { padding: 6px; text-align: center; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        
+        .result-list-table th { background: #334155; color: white; padding: 12px; }
+        .result-list-table td:first-child { font-size: 16px; font-weight: 900; color: var(--vw-blue); min-width: 120px; text-align: left; padding-left: 15px; } 
+        .result-list-table td { font-size: 13px; padding: 12px; vertical-align: middle; }
+        .detail-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .detail-item { background: #f1f5f9; padding: 4px 10px; border-radius: 4px; font-weight: bold; color: #334155; font-size: 12px; white-space: nowrap; border: 1px solid #e2e8f0; }
+
+        @media (max-width: 768px) {
+            .single-grid { grid-template-columns: 1fr; }
+            .factory-range { grid-template-columns: 1fr 1fr; }
+            .factory-range .btn-super-gen { grid-column: span 2; }
+            .manual-top-grid { grid-template-columns: 1fr; gap: 10px; }
+            .section-title { font-size: 1.1rem; }
+            .sf-table th, .sf-table td { padding: 8px 4px; }
+        }
+
+        /* NATIVE PRINT STYLES */
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body > * { display: none !important; }
+            .main-container, .view-section.active, .content, #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+            .sidebar, button, .btn { display: none !important; }
+            .dashboard { background: linear-gradient(135deg, var(--vw-blue) 0%, #003380 100%) !important; color: white !important; display: block !important; }
+            .dash-row { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 10px !important; }
+            .dash-item { border-left: 3px solid var(--vw-light-blue) !important; color: white !important; }
+            .dash-val { color: white !important; }
+            .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .table-container { overflow: visible !important; }
+            table { width: 100% !important; font-size: 11px !important; }
+            th, td { padding: 6px !important; border: 1px solid #ccc !important; }
+        }
+    </style>
+</head>
+<body onload="initAll()">
+
+<div class="main-container">
+    
+    <div id="view-single" class="view-section active">
+        <div class="single-grid">
+            <div class="sidebar">
+                <div class="glass-card">
+                    <div class="section-title">
+                        <div>BSD專屬精算核心 <span class="author-tag">今晚沒喝夠的小賈哥</span></div>
+                        <button class="btn btn-factory-entry" onclick="switchView('factory')">
+                            <span>✨</span> 葵花寶典工廠
+                        </button>
+                    </div>
+                    
+                    <div class="input-group"><label>建議售價 MSRP</label><input type="number" id="MSRP" placeholder="可輸入車輛原始售價" oninput="updateUI()"></div>
+                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入分期本金" oninput="updateUI()"></div>
+                    <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入牌價利率" oninput="syncRate()"></div>
+                    
+                    <div class="input-group">
+                        <div class="check-wrap"><label style="margin:0;">客戶利率 %</label><input type="checkbox" id="rateLock" onchange="updateUI()"><span class="check-label">鎖定</span></div>
+                        <input type="number" id="CRate" step="0.0001" placeholder="勾選後以此推算月付款" oninput="updateUI()">
+                    </div>
+                    
+                    <div class="res-box">
+                        <div id="res-title" style="font-size: 11px; font-weight: bold;">補貼/退佣結果預估</div>
+                        <div class="res-val" id="res-val">$ 0</div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div class="input-group">
+                            <div class="check-wrap"><label style="margin:0;">總代理補貼</label><input type="checkbox" id="agentLock" onchange="updateUI()"><span class="check-label">鎖定</span></div>
+                            <input type="number" id="SubAgent" value="0" placeholder="給定金額" oninput="updateUI()">
+                        </div>
+                        <div class="input-group">
+                            <div class="check-wrap"><label style="margin:0;">經銷商補貼</label><input type="checkbox" id="dealerLock" onchange="updateUI()"><span class="check-label">鎖定</span></div>
+                            <input type="number" id="SubDealer" value="0" placeholder="給定金額" oninput="updateUI()">
+                        </div>
+                    </div>
+
+                    <div class="phase-header"><span>期數<span class="req">*</span></span><span>月付款金額</span><span style="text-align:right">MSRP%</span></div>
+                    <div id="phases-container">
+                        <div class="phase-grid"><input type="number" class="p-m" value="59" placeholder="期"><input type="number" class="p-v" placeholder="輸入金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                        <div class="phase-grid"><input type="number" class="p-m" value="1" placeholder="期"><input type="number" class="p-v" placeholder="輸入金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                        <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="輸入金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                        <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="輸入金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                        <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="輸入金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <button class="btn btn-calc" onclick="smartSolve()">執行智慧同步計算</button>
+                        <button class="btn btn-reset" onclick="initApp()">清除所有欄位</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="print-area">
+                <div class="dashboard">
+                    <div class="dash-row">
+                        <div class="dash-item" id="msrp-dash" style="display:none;"><div class="dash-label">建議售價 MSRP</div><div class="dash-val" id="d-msrp">0</div></div>
+                        <div class="dash-item"><div class="dash-label">分期本金</div><div class="dash-val" id="d-pv">0</div></div>
+                        <div class="dash-item"><div class="dash-label">客戶實際利率 (IRR)</div><div class="dash-val" id="d-crate">-- %</div></div>
+                        <div class="dash-item"><div class="dash-label">分期總期數</div><div class="dash-val" id="d-terms">0</div></div>
+                        <div class="dash-item"><div class="dash-label">總付款金額</div><div class="dash-val" id="d-total-pmt">0</div></div>
+                    </div>
+                    <div class="payment-summary" id="d-summary">請輸入參數並點擊計算...</div>
+                    <div class="glass-card" style="margin-top:15px;">
+                        <div class="section-title">
+                            本息攤還表 
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn btn-excel" onclick="exportSingleExcel()">匯出 EXCEL</button>
+                                <button class="btn btn-export" onclick="window.print()">列印 / 另存 PDF</button>
+                            </div>
+                        </div>
+                        <div class="table-container"><table id="amortTable" class="sf-table"><thead><tr><th>期數</th><th>月付款</th><th>利息</th><th>本金</th><th>餘額</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-factory" class="view-section">
+        <div class="glass-card">
+            <div class="section-title">
+                <div>葵花寶典批量生產小工廠 <span class="author-tag">Power by BSD Core</span></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-excel" onclick="exportToExcel()">匯出 EXCEL</button>
+                    <button class="btn btn-back" onclick="switchView('single')">返回精算核心</button>
+                </div>
+            </div>
+
+            <div class="factory-config">
+                <div class="input-group">
+                    <label>Charge Rate %</label>
+                    <input type="number" id="F-ChargeRate" value="5.0" step="0.01" oninput="syncFactoryLock()">
+                </div>
+                <div class="input-group">
+                    <label>Customer Rate %</label>
+                    <input type="number" id="F-CustRate" value="5.0" step="0.01" disabled style="background:#e2e8f0;">
+                </div>
+                <div class="input-group">
+                    <label>客戶利率優先鎖</label>
+                    <div class="check-wrap" style="height:42px; border:1px solid #cbd5e1; border-radius:6px; background:white; padding:0 10px;">
+                        <input type="checkbox" id="F-PriorityLock" onchange="syncFactoryLock()">
+                        <span style="font-size:12px;">啟用 (鎖定利率)</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>總代理補貼 (優先扣除)</label>
+                    <input type="number" id="F-SubAgent" value="0">
+                </div>
+                <div class="input-group">
+                    <label id="F-SubDealer-Label">經銷商補貼</label>
+                    <input type="number" id="F-SubDealer" value="0" placeholder="0=自動消D">
+                </div>
+            </div>
+
+            <div class="factory-range">
+                <div class="input-group"><label>起始 (萬)</label><input type="number" id="R-Start" value="60"></div>
+                <div class="input-group"><label>結束 (萬)</label><input type="number" id="R-End" value="100"></div>
+                <div class="input-group"><label>區間 (萬)</label><input type="number" id="R-Step" value="5"></div>
+                <button class="btn btn-super-gen" onclick="generateMatrix()">一鍵生成葵花寶典</button>
+            </div>
+            <div class="term-selector">
+                <label class="term-check"><input type="checkbox" value="12">12期</label>
+                <label class="term-check"><input type="checkbox" value="24" checked>24期</label>
+                <label class="term-check"><input type="checkbox" value="36" checked>36期</label>
+                <label class="term-check"><input type="checkbox" value="48" checked>48期</label>
+                <label class="term-check"><input type="checkbox" value="60" checked>60期</label>
+                <label class="term-check"><input type="checkbox" value="72">72期</label>
+            </div>
+
+            <div class="sf-table-container">
+                <table class="sf-table" id="sf-matrix">
+                    <thead><tr><th class="row-header">分期金額</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:30px; border-top:4px solid var(--vw-blue); padding-top:20px;">
+                <div class="section-title">手動添加階段式組合 (無限累加)</div>
+                <div class="manual-input-area">
+                    <div class="manual-top-grid">
+                        <div class="input-group">
+                            <label>分期金額 (完整數字)</label>
+                            <input type="number" id="M-Amt" placeholder="例如: 1325998" style="background:#f8fafc; border-color:#001e50;">
+                        </div>
+                        <div class="input-group">
+                            <label>Charge %</label>
+                            <input type="number" id="M-ChargeRate" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Customer %</label>
+                            <input type="number" id="M-CustRate" step="0.01" disabled style="background:#e2e8f0;">
+                        </div>
+                    </div>
+
+                    <div class="phases-wrapper">
+                        <div class="phases-label">期數與金額設定 (金額空白 = 自動計算)</div>
+                        <div class="phases-scroll">
+                            <div class="phase-box"><label>1(期)</label><input type="number" class="mp-m"><label>額</label><input type="number" class="mp-v"></div>
+                            <div class="phase-box"><label>2(期)</label><input type="number" class="mp-m"><label>額</label><input type="number" class="mp-v"></div>
+                            <div class="phase-box"><label>3(期)</label><input type="number" class="mp-m"><label>額</label><input type="number" class="mp-v"></div>
+                            <div class="phase-box"><label>4(期)</label><input type="number" class="mp-m"><label>額</label><input type="number" class="mp-v"></div>
+                            <div class="phase-box"><label>5(期)</label><input type="number" class="mp-m"><label>額</label><input type="number" class="mp-v"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-gen-row" onclick="addManualResultRow()">生成並加入清單</button>
+                </div>
+
+                <div class="sf-table-container">
+                    <table class="sf-table result-list-table">
+                        <thead>
+                            <tr>
+                                <th>分期金額</th>
+                                <th>付款明細</th>
+                                <th style="width:80px;">客戶利率</th>
+                                <th style="width:160px;">補貼狀況</th>
+                                <th style="width:140px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manual-results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Core Logic ---
+    function calculateActualS(B20, B4_m, flows) {
+        let npv_unit = 0; 
+        flows.forEach((pmt, i) => { npv_unit += (pmt / B20 * 10000) / Math.pow(1 + B4_m, i + 1); });
+        return Math.round(Math.floor(npv_unit - 10000) * B20 / 10000);
+    }
+    function solveIRR(p0, flows) {
+        let r = 0.005; for (let i = 0; i < 64; i++) {
+            let f = p0; flows.forEach((pmt, t) => f += pmt / Math.pow(1 + r, t + 1));
+            let df = 0; flows.forEach((pmt, t) => df -= ((t + 1) * pmt) / Math.pow(1 + r, t + 2));
+            if(Math.abs(df) < 0.0000001) break;
+            r = r - f / df;
+        } return r;
+    }
+
+    // --- Init ---
+    function initAll() { initApp(); syncFactoryLock(); }
+    function switchView(viewName) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('view-' + viewName).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Tab 1 ---
+    function initApp() {
+        document.querySelectorAll('#view-single input[type="checkbox"]').forEach(c => c.checked = false);
+        document.querySelectorAll('#view-single input:not([type="checkbox"])').forEach(i => i.value = "");
+        document.getElementById('SubAgent').value = 0; document.getElementById('SubDealer').value = 0;
+        const pms = document.querySelectorAll('.p-m'); pms[0].value = 59; pms[1].value = 1;
+        document.getElementById('res-val').innerText = "$ 0";
+        updateUI();
+    }
+    function syncRate() { if (!document.getElementById('rateLock').checked) document.getElementById('CRate').value = document.getElementById('B4').value; updateUI(); }
+    function updateUI() {
+        const msrp = parseFloat(document.getElementById('MSRP').value) || 0;
+        const pv = parseFloat(document.getElementById('B20').value) || 0;
+        const rLock = document.getElementById('rateLock').checked;
+        const aLock = document.getElementById('agentLock').checked;
+        const dLock = document.getElementById('dealerLock').checked;
+        document.getElementById('CRate').style.background = rLock ? "#fff1f2" : "#ffffff";
+        document.getElementById('SubAgent').style.background = aLock ? "#fff1f2" : "#ffffff";
+        document.getElementById('SubDealer').style.background = dLock ? "#fff1f2" : "#ffffff";
+        document.getElementById('d-pv').innerText = "$ " + pv.toLocaleString();
+        document.getElementById('msrp-dash').style.display = msrp > 0 ? 'block' : 'none';
+        document.getElementById('d-msrp').innerText = "$ " + msrp.toLocaleString();
+        const pVs = document.querySelectorAll('.p-v'), labels = document.querySelectorAll('.pct-label');
+        pVs.forEach((v, i) => {
+            const val = parseFloat(v.value) || 0;
+            labels[i].innerText = (msrp > 0 && val > 0) ? (val/msrp*100).toFixed(2)+"%" : "--%";
+        });
+    }
+    function smartSolve() {
+        const B20 = parseFloat(document.getElementById('B20').value), B4_v = parseFloat(document.getElementById('B4').value);
+        if(!B20 || !B4_v) return alert("本金跟牌價利率要填喔！");
+        const rLock = document.getElementById('rateLock').checked;
+        const aLock = document.getElementById('agentLock').checked;
+        const dLock = document.getElementById('dealerLock').checked;
+        const pMs = Array.from(document.querySelectorAll('.p-m')).map(i => parseInt(i.value) || 0);
+        const pVsInputs = document.querySelectorAll('.p-v');
+        const emptyIdx = Array.from(pVsInputs).findIndex((v, i) => pMs[i] > 0 && !v.value);
+        if (rLock && aLock && dLock && emptyIdx === -1) return alert("請清空任意月付款欄位以進行計算");
+        let target_m = (parseFloat(document.getElementById('CRate').value) || B4_v) / 100 / 12;
+        if (emptyIdx !== -1) {
+            let knownPV = 0, currentT = 0, factor = 0;
+            for (let i = 0; i < pMs.length; i++) {
+                for (let j = 0; j < pMs[i]; j++) {
+                    currentT++;
+                    if (i === emptyIdx) factor += 1 / Math.pow(1 + target_m, currentT);
+                    else knownPV += (parseFloat(pVsInputs[i].value) || 0) / Math.pow(1 + target_m, currentT);
+                }
+            }
+            let basePmt = Math.ceil((B20 - knownPV) / factor);
+            if (!rLock && (aLock || dLock)) {
+                const sA = aLock ? (parseFloat(document.getElementById('SubAgent').value) || 0) : 0;
+                const sD = dLock ? (parseFloat(document.getElementById('SubDealer').value) || 0) : 0;
+                const targetS_Limit = -(sA + sD); 
+                const getS = (p) => {
+                    let npv_u = 0, t = 0;
+                    for(let i=0; i<pMs.length; i++){
+                        for(let j=0; j<pMs[i]; j++){
+                            t++;
+                            let val = (i === emptyIdx) ? p : (parseFloat(pVsInputs[i].value) || 0);
+                            npv_u += (val / B20 * 10000) / Math.pow(1 + (B4_v/100/12), t);
+                        }
+                    }
+                    return Math.round(Math.floor(npv_u - 10000) * B20 / 10000);
+                };
+                while (getS(basePmt) > targetS_Limit && basePmt > 0) { basePmt--; }
+                while (getS(basePmt) < targetS_Limit) { basePmt++; }
+                if (getS(basePmt) > targetS_Limit) basePmt--;
+            }
+            pVsInputs[emptyIdx].value = basePmt;
+        }
+        renderOutput();
+    }
+    function renderOutput() {
+        const B20 = parseFloat(document.getElementById('B20').value);
+        const B4_v = parseFloat(document.getElementById('B4').value);
+        const B4_m = (B4_v / 100 / 12);
+        const rLock = document.getElementById('rateLock').checked;
+        const aLock = document.getElementById('agentLock').checked;
+        const dLock = document.getElementById('dealerLock').checked;
+        let pMs = Array.from(document.querySelectorAll('.p-m')).map(i => parseInt(i.value) || 0);
+        let pVs = Array.from(document.querySelectorAll('.p-v')).map(i => parseFloat(i.value) || 0);
+        let flows = []; pMs.forEach((m, i) => { for(let j=0; j<m; j++) flows.push(pVs[i]); });
+        let irr_m = solveIRR(-B20, flows);
+        const finalCRate = (irr_m * 12 * 100).toFixed(4);
+        document.getElementById('d-crate').innerText = finalCRate + "%";
+        if(!rLock) document.getElementById('CRate').value = finalCRate;
+        let totalS = calculateActualS(B20, B4_m, flows);
+        document.getElementById('res-val').innerText = "$ " + Math.abs(totalS).toLocaleString();
+        document.getElementById('res-val').style.color = totalS < 0 ? "#dc2626" : "#16a34a";
+        let neededTotal = (totalS < 0) ? Math.abs(totalS) : 0;
+        let sA = parseFloat(document.getElementById('SubAgent').value) || 0;
+        if (dLock) { let actualD = Math.max(0, neededTotal - sA); document.getElementById('SubDealer').value = actualD; }
+        else if (aLock) { document.getElementById('SubDealer').value = Math.max(0, neededTotal - sA); }
+        else { document.getElementById('SubAgent').value = 0; document.getElementById('SubDealer').value = neededTotal; }
+        document.getElementById('d-total-pmt').innerText = "$ " + flows.reduce((a,b)=>a+b, 0).toLocaleString();
+        document.getElementById('d-terms').innerText = flows.length + " 期";
+        let st = 1, summ = "";
+        pMs.forEach((m, i) => { if(m > 0) { summ += `第 ${st}-${st+m-1} 期：$${pVs[i].toLocaleString()}<br>`; st += m; } });
+        document.getElementById('d-summary').innerHTML = summ;
+        const tbody = document.querySelector('#amortTable tbody'); tbody.innerHTML = '';
+        let bal = B20;
+        flows.forEach((pmt, i) => {
+            let int = bal * irr_m, princ = pmt - int; bal -= princ;
+            tbody.innerHTML += `<tr><td>${i+1}</td><td>${Math.round(pmt).toLocaleString()}</td><td>${Math.round(int).toLocaleString()}</td><td>${Math.round(princ).toLocaleString()}</td><td>${Math.max(0,Math.round(bal)).toLocaleString()}</td></tr>`;
+        });
+        updateUI();
+    }
+
+    // === Excel Export for Tab 1 ===
+    function exportSingleExcel() {
+        let msrp = document.getElementById('MSRP').value || 0;
+        let loan = document.getElementById('B20').value || 0;
+        let rate = document.getElementById('d-crate').innerText;
+        let term = document.getElementById('d-terms').innerText;
+        let total = document.getElementById('d-total-pmt').innerText;
+        let data = [
+            ["BSD 試算報告"], [""],
+            ["建議售價", msrp], ["分期本金", loan], ["客戶利率", rate], ["總期數", term], ["總付款", total], [""],
+            ["期數", "月付款", "利息", "本金", "餘額"]
+        ];
+        let rows = document.querySelectorAll('#amortTable tbody tr');
+        rows.forEach(row => {
+            let cells = row.querySelectorAll('td');
+            let rowData = [];
+            cells.forEach(cell => rowData.push(cell.innerText));
+            data.push(rowData);
+        });
+        let ws = XLSX.utils.aoa_to_sheet(data);
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "試算報告");
+        XLSX.writeFile(wb, "BSD_試算報告.xlsx");
+    }
+
+    // --- Tab 2 Functions ---
+    function syncFactoryLock() {
+        const isLocked = document.getElementById('F-PriorityLock').checked;
+        const cRateInput = document.getElementById('F-CustRate');
+        const dSubInput = document.getElementById('F-SubDealer');
+        const mChargeInput = document.getElementById('M-ChargeRate');
+        const mCustInput = document.getElementById('M-CustRate');
+        const fChargeVal = document.getElementById('F-ChargeRate').value;
+
+        if(isLocked) {
+            cRateInput.disabled = false; cRateInput.style.background = "#fff";
+            dSubInput.disabled = true; dSubInput.value = ""; dSubInput.placeholder = "鎖定模式不輸入"; dSubInput.style.background = "#e2e8f0";
+            mCustInput.disabled = false; mCustInput.style.background = "#fff";
+            if(!mChargeInput.value) mChargeInput.value = fChargeVal;
+            if(!mCustInput.value) mCustInput.value = fChargeVal;
+        } else {
+            cRateInput.disabled = true; cRateInput.style.background = "#e2e8f0"; cRateInput.value = fChargeVal;
+            dSubInput.disabled = false; dSubInput.placeholder = "輸入金額 (0=消D)"; dSubInput.style.background = "#fff";
+            mCustInput.disabled = true; mCustInput.style.background = "#e2e8f0"; mCustInput.value = mChargeInput.value || fChargeVal;
+            if(!mChargeInput.value) mChargeInput.value = fChargeVal;
+        }
+    }
+
+    function exportToExcel() {
+        var wb = XLSX.utils.book_new();
+        var ws_matrix = XLSX.utils.table_to_sheet(document.getElementById('sf-matrix'));
+        XLSX.utils.book_append_sheet(wb, ws_matrix, "速算矩陣");
+        var ws_manual = XLSX.utils.table_to_sheet(document.querySelector('.result-list-table'));
+        XLSX.utils.book_append_sheet(wb, ws_manual, "手動試算清單");
+        XLSX.writeFile(wb, 'BSD_葵花寶典.xlsx');
+    }
+
+    function generateMatrix() {
+        const start = parseInt(document.getElementById('R-Start').value) * 10000;
+        const end = parseInt(document.getElementById('R-End').value) * 10000;
+        const step = parseInt(document.getElementById('R-Step').value) * 10000;
+        const terms = Array.from(document.querySelectorAll('.term-selector input:checked')).map(c=>parseInt(c.value));
+        if(terms.length===0) return alert("請選擇期數");
+        const thead = document.querySelector('#sf-matrix thead tr');
+        thead.innerHTML = '<th class="row-header">分期金額</th>';
+        terms.forEach(t => thead.innerHTML += `<th>${t} 期</th>`);
+        const tbody = document.querySelector('#sf-matrix tbody');
+        tbody.innerHTML = '';
+        for(let amt=start; amt<=end; amt+=step) {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td class="row-header">${amt/10000} 萬</td>`;
+            terms.forEach(t => {
+                let cellData = calcFactoryCell(amt, t, null, null, null);
+                let td = document.createElement('td');
+                td.innerHTML = renderCellHTML(amt, t, cellData.pmt, null, null);
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        }
+    }
+
+    function calcFactoryCell(loan, term, overridePmt = null, manualCharge = null, manualCust = null) {
+        const globalCharge = parseFloat(document.getElementById('F-ChargeRate').value);
+        const globalCust = parseFloat(document.getElementById('F-CustRate').value);
+        const chargeRateVal = (manualCharge !== null) ? manualCharge : globalCharge;
+        const chargeRateM = chargeRateVal/100/12;
+        const lockMode = document.getElementById('F-PriorityLock').checked;
+        let targetRateVal = (manualCust !== null) ? manualCust : globalCust;
+        if (!lockMode) targetRateVal = chargeRateVal;
+        let targetRateM = targetRateVal/100/12;
+        const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
+        let dealerInput = document.getElementById('F-SubDealer').value;
+        let dealerFixed = parseFloat(dealerInput) || 0;
+
+        let pmt = 0;
+        if (overridePmt !== null) {
+            pmt = overridePmt;
+        } else {
+            if (lockMode) {
+                let pow = Math.pow(1+targetRateM, term);
+                pmt = Math.ceil(loan * targetRateM * pow / (pow - 1));
+            } else {
+                let netLoan = loan - (agentMax + dealerFixed);
+                let pow = Math.pow(1+chargeRateM, term);
+                pmt = Math.ceil(netLoan * chargeRateM * pow / (pow - 1));
+                
+                let limit = -(agentMax + dealerFixed);
+                const getS = (p) => {
+                    let flows = new Array(term).fill(p);
+                    return calculateActualS(loan, chargeRateM, flows);
+                };
+                while (getS(pmt) < limit) {
+                    pmt++;
+                }
+            }
+            let minPmt = Math.ceil(loan / term);
+            if(pmt < minPmt) pmt = minPmt;
+        }
+        return { pmt, chargeRateM };
+    }
+
+    function renderCellHTML(loan, term, pmt, manualCharge=null, manualCust=null) {
+        const globalCharge = parseFloat(document.getElementById('F-ChargeRate').value);
+        const chargeRateVal = (manualCharge !== null) ? manualCharge : globalCharge;
+        const chargeM = chargeRateVal/100/12;
+        const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
+        
+        let flows = new Array(term).fill(pmt);
+        let irr = solveIRR(-loan, flows);
+        if(irr < 0) irr = 0;
+        let rate = (irr*1200).toFixed(2);
+        
+        let totalS = calculateActualS(loan, chargeM, flows); 
+        let subNeeded = (totalS < 0) ? Math.abs(totalS) : 0;
+        let commission = (totalS > 0) ? totalS : 0;
+        
+        let agentUsed = Math.min(subNeeded, agentMax);
+        let dealerUsed = subNeeded - agentUsed;
+        
+        let unusedAgent = agentMax - agentUsed;
+        let showAgentActual = (agentMax > 0 && unusedAgent > 1000);
+
+        let subStr = "";
+        if (commission > 0) {
+            subStr = `<span class="res-sub" style="color:green">產生退利率佣：$${commission.toLocaleString()}</span>`;
+        } else {
+            let parts = [];
+            if(dealerUsed > 0) {
+                parts.push(`<span style="color:red">經銷商補貼：$${dealerUsed.toLocaleString()}</span>`);
+            }
+            if(showAgentActual) {
+                parts.push(`<span style="color:var(--agent-color)">總代理補貼實際使用：$${agentUsed.toLocaleString()}</span>`);
+            }
+            subStr = parts.length > 0 ? `<span class="res-sub">${parts.join('<br>')}</span>` : `<span class="res-sub" style="height:14px; display:block;"></span>`;
+        }
+
+        return `<div class="res-cell"><span class="res-pmt" style="font-size:15px; color:#001e50;">$${pmt.toLocaleString()}</span><span class="res-rate">${rate}%</span>${subStr}<button class="btn btn-rev" onclick="reviseMatrixCell(this, ${loan}, ${term}, ${manualCharge}, ${manualCust})">校訂</button></div>`;
+    }
+
+    function reviseMatrixCell(btn, loan, term, mCharge, mCust) {
+        let parent = btn.parentElement;
+        let pmtText = parent.querySelector('.res-pmt').innerText.replace('$','').replace(/,/g,'');
+        let mc = mCharge === null ? 'null' : mCharge;
+        let mu = mCust === null ? 'null' : mCust;
+        parent.innerHTML = `<input type="number" value="${pmtText}" style="width:80px; text-align:center; border:2px solid var(--warning); border-radius:4px;" onblur="saveMatrixRevise(this, ${loan}, ${term}, ${mc}, ${mu})" onkeydown="if(event.key==='Enter') this.blur()"><span style="font-size:10px; color:gray">輸入後離開</span>`;
+        parent.querySelector('input').focus();
+    }
+
+    function saveMatrixRevise(input, loan, term, mCharge, mCust) {
+        let newPmt = parseInt(input.value);
+        if(!newPmt) return;
+        let td = input.parentElement.parentElement;
+        let realMC = (mCharge === 'null' || isNaN(mCharge)) ? null : mCharge;
+        let realMU = (mCust === 'null' || isNaN(mCust)) ? null : mCust;
+        td.innerHTML = renderCellHTML(loan, term, newPmt, realMC, realMU);
+    }
+
+    function addManualResultRow() {
+        const loan = parseFloat(document.getElementById('M-Amt').value);
+        if(!loan) return alert("請輸入分期金額");
+        const mCharge = parseFloat(document.getElementById('M-ChargeRate').value);
+        const mCust = parseFloat(document.getElementById('M-CustRate').value);
+        if(isNaN(mCharge) || isNaN(mCust)) return alert("請確認利率欄位");
+
+        let phases = [];
+        let pBoxes = document.querySelectorAll('.manual-input-area .phase-box');
+        pBoxes.forEach(box => {
+            let inputs = box.querySelectorAll('input');
+            let m = parseInt(inputs[0].value)||0;
+            let v = inputs[1].value === "" ? null : parseFloat(inputs[1].value);
+            if(m>0) phases.push({ m, v, isAuto: (v===null) });
+        });
+        if(phases.length===0) return alert("請輸入至少一組期數");
+        
+        let res = calcManualPhases(loan, phases, null, mCharge, mCust);
+        const tbody = document.getElementById('manual-results-body');
+        const rowId = 'mr-' + Date.now();
+        let tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.innerHTML = renderManualRowHTML(loan, res, phases, rowId, mCharge, mCust);
+        tbody.appendChild(tr);
+        document.getElementById('M-Amt').value = '';
+        pBoxes.forEach(box => box.querySelectorAll('input').forEach(i => i.value=''));
+    }
+
+    function calcManualPhases(loan, phases, overridePmt, mCharge, mCust) {
+        const chargeRateVal = mCharge;
+        const chargeRateM = chargeRateVal/100/12;
+        const lockMode = document.getElementById('F-PriorityLock').checked;
+        const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
+        let dealerInput = document.getElementById('F-SubDealer').value;
+        let dealerFixed = parseFloat(dealerInput) || 0;
+
+        let calcPmt = 0;
+        if(overridePmt !== null) {
+            calcPmt = overridePmt;
+        } else {
+            let targetPV = 0;
+            let targetRate = 0;
+            if(lockMode) { targetRate = mCust/100/12; targetPV = loan; } 
+            else { targetRate = chargeRateM; targetPV = loan - (agentMax + dealerFixed); }
+            let fixedPV = 0, varFactor = 0, t = 0;
+            phases.forEach(p => {
+                for(let k=0; k<p.m; k++) {
+                    t++;
+                    let disc = 1/Math.pow(1+targetRate, t);
+                    if(!p.isAuto) fixedPV += p.v * disc;
+                    else varFactor += disc;
+                }
+            });
+            if(varFactor > 0) calcPmt = Math.ceil((targetPV - fixedPV)/varFactor);
+
+            if (!lockMode) {
+                let limit = -(agentMax + dealerFixed);
+                const getS_Multi = (p) => {
+                    let t_s = 0, npv_u = 0;
+                    phases.forEach(ph => {
+                        let val = ph.isAuto ? p : ph.v;
+                        for(let k=0; k<ph.m; k++) {
+                            t_s++;
+                            npv_u += (val / loan * 10000) / Math.pow(1 + chargeRateM, t_s);
+                        }
+                    });
+                    return Math.round(Math.floor(npv_u - 10000) * loan / 10000);
+                };
+                while (getS_Multi(calcPmt) < limit) { calcPmt++; }
+            }
+            
+            // 0% Floor Logic
+            let flowsCheck = [];
+            phases.forEach(ph=>{ for(let k=0; k<ph.m; k++) flowsCheck.push(ph.isAuto?calcPmt:ph.v); });
+            while(solveIRR(-loan, flowsCheck) < 0) {
+                calcPmt++;
+                flowsCheck = [];
+                phases.forEach(ph=>{ for(let k=0; k<ph.m; k++) flowsCheck.push(ph.isAuto?calcPmt:ph.v); });
+            }
+        }
+
+        let flows = [], details = [], st = 1;
+        phases.forEach(p => {
+            let val = p.isAuto ? calcPmt : p.v;
+            for(let k=0; k<p.m; k++) flows.push(val);
+            let end = st + p.m - 1;
+            details.push(`<span class="detail-item">${st}-${end}期: $${val.toLocaleString()}</span>`);
+            st += p.m;
+        });
+
+        let irr = solveIRR(-loan, flows);
+        if(irr<0) irr=0;
+        let rate = (irr*1200).toFixed(2);
+        let totalS = calculateActualS(loan, chargeRateM, flows);
+        let subNeeded = (totalS < 0) ? Math.abs(totalS) : 0;
+        let commission = (totalS > 0) ? totalS : 0;
+        let agentUsed = Math.min(subNeeded, agentMax);
+        let dealerUsed = subNeeded - agentUsed;
+
+        return { rate, dealerUsed, agentUsed, commission, details, flows, autoPmt: calcPmt };
+    }
+
+    function renderManualRowHTML(loan, res, phases, rowId, mCharge, mCust) {
+        let phasesJson = JSON.stringify(phases).replace(/"/g, '&quot;');
+        const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
+        let unusedAgent = agentMax - res.agentUsed;
+        let showAgentActual = (agentMax > 0 && unusedAgent > 1000);
+
+        let subStr = "";
+        if (res.commission > 0) {
+            subStr = `<span style="color:green; font-weight:bold;">產生退利率佣：$${res.commission.toLocaleString()}</span>`;
+        } else {
+            let parts = [];
+            if(res.dealerUsed > 0) parts.push(`<div style="color:red; font-weight:bold;">經銷商補貼：$${res.dealerUsed.toLocaleString()}</div>`);
+            if(showAgentActual) parts.push(`<div style="color:var(--agent-color); font-weight:bold;">總代理補貼實際使用：$${res.agentUsed.toLocaleString()}</div>`);
+            subStr = parts.join('');
+        }
+        
+        return `<td>${loan.toLocaleString()}</td>
+                <td><div class="detail-row">${res.details.join('')}</div></td>
+                <td><b>${res.rate}%</b></td>
+                <td>${subStr}</td>
+                <td><button class="btn btn-rev" onclick="reviseManualRow('${rowId}', ${loan}, ${mCharge}, ${mCust})">校訂</button> <button class="btn btn-del" onclick="document.getElementById('${rowId}').remove()">刪除</button><div id="data-${rowId}" style="display:none;">${phasesJson}</div></td>`;
+    }
+
+    function reviseManualRow(rowId, loan, mCharge, mCust) {
+        let phases = JSON.parse(document.getElementById('data-'+rowId).innerText);
+        if(!phases.some(p=>p.isAuto)) return alert("此組合沒有自動計算的欄位，無法校訂");
+        let newPmt = prompt("請輸入修正後的月付款:");
+        if(newPmt===null) return;
+        newPmt = parseInt(newPmt);
+        if(isNaN(newPmt)) return alert("請輸入有效金額");
+        let res = calcManualPhases(loan, phases, newPmt, mCharge, mCust);
+        document.getElementById(rowId).innerHTML = renderManualRowHTML(loan, res, phases, rowId, mCharge, mCust);
+    }
+</script>
+</body>
+</html>
