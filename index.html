@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSD專屬精算核心 - 2025 Excel優化版</title>
+    <title>BSD專屬精算核心 - 2025 葵花寶典加強版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
@@ -137,13 +137,13 @@
                     <div class="section-title">
                         <div>BSD專屬精算核心 <span class="author-tag">今晚沒喝夠的小賈哥</span></div>
                         <button class="btn btn-factory-entry" onclick="switchView('factory')">
-                            <span>✨</span> 葵花寶典小工廠
+                            <span>✨</span> 葵花寶典工廠
                         </button>
                     </div>
                     
                     <div class="input-group"><label>建議售價 MSRP</label><input type="number" id="MSRP" placeholder="可輸入車輛原始售價" oninput="updateUI()"></div>
-                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入貸款分期總額" oninput="updateUI()"></div>
-                    <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入合約牌價利率" oninput="syncRate()"></div>
+                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入分期本金總額" oninput="updateUI()"></div>
+                    <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入牌價利率" oninput="syncRate()"></div>
                     
                     <div class="input-group">
                         <div class="check-wrap"><label style="margin:0;">客戶利率 %</label><input type="checkbox" id="rateLock" onchange="updateUI()"><span class="check-label">鎖定</span></div>
@@ -210,7 +210,7 @@
     <div id="view-factory" class="view-section">
         <div class="glass-card">
             <div class="section-title">
-                <div>葵花寶典批量生產小工廠 <span class="author-tag">Power by BSD Core</span></div>
+                <div>葵花寶典批量生產工廠 <span class="author-tag">Power by BSD Core</span></div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-excel" onclick="exportToExcel()">匯出 EXCEL</button>
                     <button class="btn btn-back" onclick="switchView('single')">返回精算核心</button>
@@ -370,7 +370,7 @@
     }
     function smartSolve() {
         const B20 = parseFloat(document.getElementById('B20').value), B4_v = parseFloat(document.getElementById('B4').value);
-        if(!B20 || !B4_v) return alert("賈哥，本金跟牌價利率要填喔！");
+        if(!B20 || !B4_v) return alert("本金跟牌價利率要填喔！");
         const rLock = document.getElementById('rateLock').checked;
         const aLock = document.getElementById('agentLock').checked;
         const dLock = document.getElementById('dealerLock').checked;
