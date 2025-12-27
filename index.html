@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSD專屬精算核心 - 2025 葵花寶典加強版</title>
+    <title>BSD專屬精算核心 - 視覺友善及葵花寶典加強版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
     <style>
         :root { --vw-blue: #001e50; --vw-light-blue: #00b0f0; --glass: rgba(255, 255, 255, 0.95); --text: #1e293b; --danger: #e11d48; --success: #10b981; --warning: #f59e0b; --agent-color: #0284c7; }
+        
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f1f5f9; margin: 0; padding: 10px; color: var(--text); -webkit-text-size-adjust: 100%; }
         
         .main-container { max-width: 1400px; margin: auto; position: relative; }
@@ -36,8 +37,11 @@
         .btn-back { background: #64748b; color: white; padding: 8px 16px; font-size: 13px; border-radius: 20px; }
         .btn-super-gen { width: 100%; background: linear-gradient(135deg, #001e50 0%, #004e92 100%); color: white; padding: 16px; font-size: 18px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 78, 146, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .btn-reset { width: 100%; background: #f1f5f9; color: #64748b; padding: 10px; margin-top: 10px; }
-        .btn-excel { background: #107c41; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(16, 124, 65, 0.2); }
+        
+        /* Excel Button Styling */
+        .btn-excel { background: #107c41; color: white; padding: 8px 15px; font-size: 13px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(16, 124, 65, 0.2); }
         .btn-excel:hover { background: #0c5e31; }
+
         .btn-rev { background: var(--warning); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
         .btn-del { background: var(--danger); color: white; font-size: 11px; padding: 4px 10px; border-radius: 4px; }
         .btn-gen-row { background: var(--success); color: white; padding: 12px; font-size: 15px; width: 100%; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
@@ -74,6 +78,7 @@
         .sf-table td.row-header { position: sticky; left: 0; z-index: 9; background: #f8fafc; font-weight: 900; border-right: 2px solid #cbd5e1; color: var(--vw-blue); }
         .sf-table tr:nth-child(even) { background: #f8fafc; }
 
+        /* Amort Table Customization */
         #amortTable td { color: #334155; font-weight: bold; }
         #amortTable td:nth-child(2) { color: var(--vw-blue); font-weight: 900; font-size: 14px; }
         #amortTable td:nth-child(5) { color: #94a3b8; font-weight: normal; }
@@ -99,6 +104,169 @@
         .detail-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .detail-item { background: #f1f5f9; padding: 4px 10px; border-radius: 4px; font-weight: bold; color: #334155; font-size: 12px; white-space: nowrap; border: 1px solid #e2e8f0; }
 
+        /* --- 眼睛超舒服模式 CSS Start --- */
+        /* ★★★ 按鈕顯示修復：z-index 提高，position 修正 ★★★ */
+        .comfort-trigger-btn {
+            background-color: #2ecc71; color: white; border: none; padding: 10px 20px;
+            border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 3px 10px rgba(46, 204, 113, 0.4); 
+            display: block; /* 獨立區塊 */
+            margin-top: 10px; margin-bottom: 10px; width: 100%;
+            text-align: center; position: relative; z-index: 100;
+        }
+
+        /* ★★★ Overlay CSS (含最終修正：flex-start 與 padding) ★★★ */
+        .comfort-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #f0f2f5; z-index: 9999;
+            display: flex; flex-direction: column;
+            padding-top: 20px; /* 這裡不需要太多，因為 Container 已經有了 */
+            box-sizing: border-box; 
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+        }
+
+        /* 專業流程進度條 */
+        .comfort-stepper {
+            height: 14vh; background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            overflow-x: auto; gap: 15px; flex-shrink: 0; /* 防止被擠壓 */
+        }
+
+        .step-item {
+            display: flex; flex-direction: column; align-items: center;
+            position: relative; min-width: 60px; z-index: 1; opacity: 0.5; transition: 0.3s;
+        }
+        .step-circle {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #e0e0e0; color: #555;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 12px; transition: 0.3s;
+            border: 2px solid #fff; box-shadow: 0 0 0 1px #ccc;
+        }
+        .step-label {
+            margin-top: 6px; font-size: 11px; color: #999; font-weight: bold;
+            white-space: nowrap;
+        }
+        /* 進度條下方的數據顯示 (淡入動畫) */
+        .step-data {
+            font-size: 10px; color: #2ecc71; font-weight: 900;
+            margin-top: 2px; height: 14px; opacity: 0; transition: opacity 0.5s ease-in-out;
+            white-space: nowrap;
+        }
+        
+        .step-line {
+            width: 20px; height: 2px; background: #e0e0e0; margin-top: -20px; flex-shrink: 0;
+        }
+
+        /* Active/Done States */
+        .step-item.active { opacity: 1; transform: scale(1.05); }
+        .step-item.active .step-circle { background: #2ecc71; color: white; box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3); border-color: #2ecc71; }
+        .step-item.active .step-label { color: #2ecc71; }
+        
+        .step-item.done { opacity: 1; }
+        .step-item.done .step-circle { background: #27ae60; color: white; border-color: #27ae60; box-shadow: none; }
+        .step-item.done .step-label { color: #27ae60; }
+        .step-item.done .step-data { opacity: 1; }
+        .step-line.done { background: #27ae60; }
+
+        /* ★★★ 修正點：改用 flex-start 並增加 padding-top，確保儀表板不被遮擋 ★★★ */
+        .comfort-container {
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: flex-start; /* 從上往下排，而非置中 */
+            align-items: center;
+            padding: 40px 20px 20px 20px; /* 上方保留 40px 間距 */
+            overflow-y: auto;
+        }
+
+        .comfort-question-area {
+            width: 100%; max-width: 600px; text-align: center;
+        }
+
+        .c-title { font-size: 1.8rem; font-weight: bold; color: #333; margin-bottom: 20px; }
+        .c-subtitle { font-size: 1rem; color: #666; margin-bottom: 10px; }
+        .c-input {
+            width: 80%; padding: 15px; font-size: 2rem; text-align: center;
+            border: 2px solid #2ecc71; border-radius: 10px; outline: none;
+            margin-bottom: 20px; background: #fff;
+        }
+        .c-input:focus { box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
+
+        .c-btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .c-btn-option {
+            padding: 20px 30px; font-size: 1.2rem; border: 2px solid #ddd;
+            border-radius: 10px; background: white; cursor: pointer; flex: 1;
+        }
+        .c-btn-option.selected { background: #2ecc71; color: white; border-color: #2ecc71; }
+
+        .c-btn-submit {
+            background: #2ecc71; color: white; padding: 15px 40px;
+            font-size: 1.5rem; border: none; border-radius: 50px; cursor: pointer;
+            width: 80%; max-width: 300px; margin-top: 10px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.4);
+        }
+        .c-btn-submit:active { transform: scale(0.98); }
+
+        .comfort-footer {
+            height: 10vh; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0;
+        }
+        .c-btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; }
+        .c-btn-secondary { background: #eee; color: #555; }
+        /* 重新計算按鈕：幽靈按鈕風格 */
+        .c-btn-restart { 
+            background: transparent; border: 2px solid #2ecc71; color: #2ecc71; 
+            padding: 10px 20px; border-radius: 50px; font-weight: bold;
+            transition: 0.2s; cursor: pointer;
+        }
+        .c-btn-restart:hover { background: #e8f8f5; }
+
+        .c-btn-danger { background: #fff0f0; color: #e74c3c; }
+
+        .comfort-error-msg { color: #e74c3c; font-size: 1.2rem; margin-top: 10px; height: 20px; font-weight: bold;}
+
+        /* Professional Dashboard in Comfort Mode */
+        .dash-card-pro {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            border-radius: 20px; padding: 25px; color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 100%; text-align: left;
+            position: relative; overflow: hidden;
+        }
+        .dash-card-pro::before {
+            content: ''; position: absolute; top: -50px; right: -50px;
+            width: 150px; height: 150px; background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .pro-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .pro-title { font-size: 1.2rem; font-weight: bold; color: #4ade80; }
+        .pro-tag { background: rgba(255,255,255,0.2); font-size: 0.8rem; padding: 4px 10px; border-radius: 12px; }
+        
+        /* 補貼顯示開關：Toggle Switch Style */
+        .toggle-container { margin-top: 15px; display: flex; justify-content: flex-end; width: 100%; }
+        .toggle-switch { display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #2c3e50; font-weight: bold; }
+        .toggle-switch input { display: none; }
+        .slider { width: 34px; height: 18px; background-color: #cbd5e1; border-radius: 20px; position: relative; margin-right: 8px; transition: .3s; }
+        .slider:before { content: ""; position: absolute; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: .3s; }
+        input:checked + .slider { background-color: #2ecc71; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        .pro-hero { text-align: center; margin-bottom: 25px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; }
+        .pro-hero-label { font-size: 0.9rem; color: #a5b4fc; margin-bottom: 8px; }
+        .pro-hero-val { font-size: 1.8rem; font-weight: 900; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; white-space: pre-line; }
+        
+        .pro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .pro-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; }
+        .pro-item.wide { grid-column: span 2; background: rgba(255,255,255,0.1); border-left: 3px solid #2ecc71; }
+        .pro-label { font-size: 0.8rem; color: #9ca3af; }
+        .pro-val { font-size: 1.1rem; font-weight: bold; color: #fff; margin-top: 2px; }
+        
+        .pro-footer { margin-top: 20px; font-size: 0.8rem; color: #6b7280; text-align: center; }
+
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* --- 眼睛超舒服模式 CSS End --- */
+
         @media (max-width: 768px) {
             .single-grid { grid-template-columns: 1fr; }
             .factory-range { grid-template-columns: 1fr 1fr; }
@@ -108,18 +276,31 @@
             .sf-table th, .sf-table td { padding: 8px 4px; }
         }
 
-        /* NATIVE PRINT STYLES */
+        /* NATIVE PRINT STYLES - FIXED & RESTORED */
         @media print {
             @page { size: A4; margin: 10mm; }
-            body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body > * { display: none !important; }
-            .main-container, .view-section.active, .content, #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
-            .sidebar, button, .btn { display: none !important; }
-            .dashboard { background: linear-gradient(135deg, var(--vw-blue) 0%, #003380 100%) !important; color: white !important; display: block !important; }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                padding: 0 !important; /* Reset padding for print */
+            }
+            
+            /* 隱藏舒適模式介面與所有按鈕 */
+            #comfort-overlay, .comfort-trigger-btn, .btn, .sidebar button { display: none !important; }
+            
+            /* 強制顯示核心內容 */
+            .main-container, #view-single, .content, #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; opacity: 1 !important; visibility: visible !important; }
+            
+            /* 隱藏側邊輸入欄，只留右側結果 */
+            .sidebar { display: none !important; }
+            .single-grid { display: block !important; }
+            
+            .dashboard { background: linear-gradient(135deg, var(--vw-blue) 0%, #003380 100%) !important; color: white !important; }
             .dash-row { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 10px !important; }
             .dash-item { border-left: 3px solid var(--vw-light-blue) !important; color: white !important; }
             .dash-val { color: white !important; }
-            .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .glass-card { border: none !important; box-shadow: none !important; padding: 0 !important; page-break-inside: avoid; }
             .table-container { overflow: visible !important; }
             table { width: 100% !important; font-size: 11px !important; }
             th, td { padding: 6px !important; border: 1px solid #ccc !important; }
@@ -141,8 +322,14 @@
                         </button>
                     </div>
                     
+                    <button class="comfort-trigger-btn" onclick="ComfortMode.init()">
+                        👁️ 眼睛超舒服模式
+                    </button>
+                    
+                    <div style="margin-top:15px;"></div>
+
                     <div class="input-group"><label>建議售價 MSRP</label><input type="number" id="MSRP" placeholder="可輸入車輛原始售價" oninput="updateUI()"></div>
-                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入分期本金總額" oninput="updateUI()"></div>
+                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入分期本金" oninput="updateUI()"></div>
                     <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入牌價利率" oninput="syncRate()"></div>
                     
                     <div class="input-group">
@@ -197,7 +384,7 @@
                             本息攤還表 
                             <div style="display:flex; gap:10px;">
                                 <button class="btn btn-excel" onclick="exportSingleExcel()">匯出 EXCEL</button>
-                                <button class="btn btn-export" onclick="exportPDF()">列印 / 另存 PDF</button>
+                                <button class="btn btn-export" onclick="window.print()">列印 / 另存 PDF</button>
                             </div>
                         </div>
                         <div class="table-container"><table id="amortTable" class="sf-table"><thead><tr><th>期數</th><th>月付款</th><th>利息</th><th>本金</th><th>餘額</th></tr></thead><tbody></tbody></table></div>
@@ -316,8 +503,22 @@
     </div>
 </div>
 
+<div id="comfort-overlay" class="comfort-overlay" style="display: none;">
+    <div class="comfort-stepper" id="comfort-stepper">
+        </div>
+
+    <div class="comfort-container">
+        <div id="comfort-question-area" class="comfort-question-area"></div>
+        <div id="comfort-error-msg" class="comfort-error-msg"></div>
+    </div>
+    <div class="comfort-footer">
+        <button class="c-btn c-btn-secondary" onclick="ComfortMode.prevStep()">上一步</button>
+        <button class="c-btn c-btn-danger" onclick="ComfortMode.exit()">離開模式</button>
+    </div>
+</div>
+
 <script>
-    // --- 核心計算 (嚴禁修改) ---
+    // --- Core Logic (Unchanged) ---
     function calculateActualS(B20, B4_m, flows) {
         let npv_unit = 0; 
         flows.forEach((pmt, i) => { npv_unit += (pmt / B20 * 10000) / Math.pow(1 + B4_m, i + 1); });
@@ -332,7 +533,7 @@
         } return r;
     }
 
-    // --- View Controller ---
+    // --- Init ---
     function initAll() { initApp(); syncFactoryLock(); }
     function switchView(viewName) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -340,7 +541,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- Tab 1 Logic ---
+    // --- Tab 1 ---
     function initApp() {
         document.querySelectorAll('#view-single input[type="checkbox"]').forEach(c => c.checked = false);
         document.querySelectorAll('#view-single input:not([type="checkbox"])').forEach(i => i.value = "");
@@ -447,62 +648,6 @@
         });
         updateUI();
     }
-    
-    // === PDF Export (Native Print) ===
-    function exportPDF() {
-        var container = document.createElement('div');
-        container.style.position = 'fixed'; 
-        container.style.top = '0'; 
-        container.style.left = '0';
-        container.style.zIndex = '9999';
-        container.style.background = 'white';
-        // A4 Width at 96dpi is ~794px. We set it slightly smaller to ensure margins fit.
-        container.style.width = '790px'; 
-        
-        var element = document.getElementById('print-area');
-        var clone = element.cloneNode(true);
-        
-        // Reset Clone Styles for Desktop-like layout
-        clone.style.width = '100%';
-        clone.style.margin = '0';
-        clone.style.padding = '20px';
-        clone.style.boxShadow = 'none';
-        
-        // Fix dashboard layout (Force 2-column)
-        var dashRow = clone.querySelector('.dash-row');
-        if(dashRow) {
-            dashRow.style.display = 'grid';
-            dashRow.style.gridTemplateColumns = '1fr 1fr';
-            dashRow.style.gap = '15px';
-        }
-
-        // Allow table full height
-        var tableContainer = clone.querySelector('.table-container');
-        if(tableContainer) {
-            tableContainer.style.overflow = 'visible';
-            tableContainer.style.maxHeight = 'none';
-        }
-
-        document.body.appendChild(container);
-        container.appendChild(clone);
-
-        var opt = {
-            margin: 10,
-            filename: 'BSD_分期報告書.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true,
-                scrollX: 0, // Critical: Reset scroll to capture from top-left
-                scrollY: 0
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(container).save().then(function(){
-            document.body.removeChild(container);
-        });
-    }
 
     // === Excel Export for Tab 1 ===
     function exportSingleExcel() {
@@ -552,103 +697,93 @@
         }
     }
 
-    // === EXCEL EXPORT (RE-CALCULATION MODE) ===
     function exportToExcel() {
-        // 1. Matrix Data Construction
+	// 1. 獲取設定參數
         const start = parseInt(document.getElementById('R-Start').value) * 10000;
         const end = parseInt(document.getElementById('R-End').value) * 10000;
         const step = parseInt(document.getElementById('R-Step').value) * 10000;
-        const terms = Array.from(document.querySelectorAll('.term-selector input:checked')).map(c=>parseInt(c.value));
-        
-        let matrixData = [];
-        // Header
-        let headerRow = ["分期金額", ...terms.map(t => t + "期")];
-        matrixData.push(headerRow);
+        const terms = Array.from(document.querySelectorAll('.term-selector input:checked')).map(c => parseInt(c.value));
 
-        for(let amt=start; amt<=end; amt+=step) {
-            let row = [amt.toLocaleString()]; // Amount col
-            terms.forEach(t => {
-                let cell = calcFactoryCell(amt, t, null, null, null);
-                // Get subsidy info
-                const chargeM = cell.chargeRateM;
-                const loan = amt;
-                const pmt = cell.pmt;
-                // Re-calc stats for export text
-                let flows = new Array(t).fill(pmt);
-                let irr = solveIRR(-loan, flows);
-                if(irr<0) irr=0;
-                let rate = (irr*1200).toFixed(2);
-                let totalS = calculateActualS(loan, chargeM, flows);
-                let subNeeded = totalS < 0 ? Math.abs(totalS) : 0;
-                let commission = totalS > 0 ? totalS : 0;
-                const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
-                let agentUsed = Math.min(subNeeded, agentMax);
-                let dealerUsed = subNeeded - agentUsed;
-                
-                // Format Cell Text
-                let cellText = `NT$${pmt}\n${rate}%`;
-                if(commission > 0) cellText += `\n佣:${commission}`;
-                else if(dealerUsed > 0 && document.getElementById('F-PriorityLock').checked) cellText += `\nD:${dealerUsed}`;
-                
-                row.push(cellText);
-            });
-            matrixData.push(row);
-        }
+        if (terms.length === 0) return alert("請選擇期數");
 
-        // 2. Manual List Data Construction
-        let listData = [["分期金額", "付款明細", "客戶利率", "經銷商補貼", "總代理補貼實際使用"]];
-        
-        // We need to parse the DOM rows because the user might have deleted some or changed order.
-        // But the data is in the hidden div.
-        let listRows = document.querySelectorAll('#manual-results-body tr');
-        listRows.forEach(tr => {
-            // Parse data from hidden div
-            let dataDiv = tr.querySelector('div[id^="data-"]');
-            if(!dataDiv) return;
-            let phases = JSON.parse(dataDiv.innerText);
+        // 2. 準備 Excel 數據結構 (Array of Arrays)
+        let data = [];
+        let headerRow = ["分期金額"]; // 第一列：大標題 (期數)
+        let subHeaderRow = [""];     // 第二列：子標題 (月付/利率/補貼)
+        let merges = [{ s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }]; // 合併A1:A2 (分期金額)
+
+        let colIndex = 1; // 從第2欄開始 (Index 1)
+
+        // 建構表頭
+        terms.forEach(t => {
+            headerRow.push(`${t} 期`, null, null); // 標題佔位
+            // 設定合併：從 (Row 0, Col Index) 到 (Row 0, Col Index+2) -> 跨3欄
+            merges.push({ s: { r: 0, c: colIndex }, e: { r: 0, c: colIndex + 2 } });
             
-            // We need to know the Loan Amount. It's in the first TD but formatted. 
-            // Better to re-calculate from phases? No, loan amount is not in phases JSON.
-            // Let's grab it from the first TD text (remove commas and '萬' if any, but we are using full numbers now)
-            let loanText = tr.cells[0].innerText.replace(/,/g, '');
-            let loan = parseFloat(loanText);
-
-            // Re-calc to get split subsidy numbers. 
-            // We need the rates used for this row.
-            // The revise function passes them, but here we iterate.
-            // Wait, the row doesn't store the rates! The rates are in the 'revise' button onclick attribute.
-            // Let's grab them from the onclick string. Hacky but works.
-            let btnHTML = tr.cells[4].innerHTML;
-            let match = btnHTML.match(/reviseManualRow\('[^']+',\s*(\d+),\s*([^,]+),\s*([^)]+)\)/);
-            let mCharge = null, mCust = null;
-            if(match) {
-                mCharge = match[2] === 'null' ? null : parseFloat(match[2]);
-                mCust = match[3] === 'null' ? null : parseFloat(match[3]);
-            }
-
-            let res = calcManualPhases(loan, phases, null, mCharge, mCust);
-            
-            // Format Phase String
-            let phaseStr = res.details.map(d => d.replace(/<[^>]+>/g, '')).join(' | '); // Strip HTML tags
-            
-            listData.push([
-                "NT$" + loan, // String format to prevent excel auto-format
-                phaseStr,
-                res.rate + "%",
-                res.dealerUsed > 0 ? res.dealerUsed : 0,
-                res.agentUsed > 0 ? res.agentUsed : 0
-            ]);
+            subHeaderRow.push("月付款", "客戶利率(%)", "經銷補貼/退佣");
+            colIndex += 3;
         });
 
-        // 3. Create Workbook
+        data.push(headerRow);
+        data.push(subHeaderRow);
+
+        // 3. 迴圈計算每一筆數據
+        const agentMax = parseFloat(document.getElementById('F-SubAgent').value) || 0;
+
+        for (let amt = start; amt <= end; amt += step) {
+            let row = [amt]; // 第一欄放金額
+
+            terms.forEach(t => {
+                // 呼叫工廠計算邏輯取得月付款
+                let cellData = calcFactoryCell(amt, t, null, null, null);
+                let pmt = cellData.pmt;
+                let chargeM = cellData.chargeRateM;
+
+                // 重新計算衍生數據 (利率 & 補貼)
+                let flows = new Array(t).fill(pmt);
+                let irr = solveIRR(-amt, flows);
+                if (irr < 0) irr = 0;
+                let rate = parseFloat((irr * 1200).toFixed(2)); // 轉為數字格式 3.5
+
+                // 計算補貼/退佣
+                let totalS = calculateActualS(amt, chargeM, flows);
+                let dealerResult = 0;
+
+                if (totalS > 0) {
+                    // 正值：退佣 (Profit)
+                    dealerResult = totalS;
+                } else {
+                    // 負值：需要補貼 (Cost)
+                    let subNeeded = Math.abs(totalS);
+                    let agentUsed = Math.min(subNeeded, agentMax);
+                    let dealerUsed = subNeeded - agentUsed;
+                    dealerResult = -dealerUsed; // 轉為負數表示支出
+                }
+
+                row.push(pmt, rate, dealerResult);
+            });
+            data.push(row);
+        }
+
+        // 4. 產生 Worksheet
+        var ws = XLSX.utils.aoa_to_sheet(data);
+
+        // 5. 套用合併儲存格設定
+        ws['!merges'] = merges;
+
+        // 6. 建立 Workbook 並匯出
         var wb = XLSX.utils.book_new();
-        var ws_matrix = XLSX.utils.aoa_to_sheet(matrixData);
-        var ws_list = XLSX.utils.aoa_to_sheet(listData);
+        XLSX.utils.book_append_sheet(wb, ws, "葵花寶典_分欄版");
         
-        XLSX.utils.book_append_sheet(wb, ws_matrix, "速算矩陣");
-        XLSX.utils.book_append_sheet(wb, ws_list, "手動試算清單");
+        // 保留原本的手動試算清單 (若有的話)
+        var manualTable = document.querySelector('.result-list-table');
+        if(manualTable && manualTable.rows.length > 1) {
+             var ws_manual = XLSX.utils.table_to_sheet(manualTable);
+             XLSX.utils.book_append_sheet(wb, ws_manual, "手動試算清單");
+        }
+
         XLSX.writeFile(wb, 'BSD_葵花寶典.xlsx');
-    }
+   	 }
 
     function generateMatrix() {
         const start = parseInt(document.getElementById('R-Start').value) * 10000;
@@ -708,7 +843,6 @@
                     pmt++;
                 }
             }
-            // 0% Floor
             let minPmt = Math.ceil(loan / term);
             if(pmt < minPmt) pmt = minPmt;
         }
@@ -906,6 +1040,493 @@
         let res = calcManualPhases(loan, phases, newPmt, mCharge, mCust);
         document.getElementById(rowId).innerHTML = renderManualRowHTML(loan, res, phases, rowId, mCharge, mCust);
     }
+
+    // --- 眼睛超舒服模式 JS (Updated) ---
+    const ComfortMode = {
+        data: {
+            mode: 0, step: 0, msrp: '', amount: '', payType: '', terms: [], chargeRate: '', custRate: '', agentSub: '', dealerSub: '', payments: []
+        },
+        
+        init: function() {
+            const isMobile = window.innerWidth <= 1024 || /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+            if (!isMobile) {
+                if(!confirm("此功能是為手機/平板設計的超大字體模式，在電腦上使用會佔滿螢幕，確定要繼續嗎？")) return;
+            }
+            document.getElementById('comfort-overlay').style.display = 'flex';
+            this.resetData();
+            this.renderStep0();
+        },
+
+        resetData: function() {
+            this.data = { mode: 0, step: 0, msrp: '', amount: '', payType: '', terms: [], chargeRate: '', custRate: '', agentSub: '', dealerSub: '', payments: [] };
+            document.getElementById('comfort-stepper').innerHTML = ''; // Clean stepper
+        },
+
+        exit: function() {
+            if(confirm("確定要離開舒適模式嗎？")) {
+                document.getElementById('comfort-overlay').style.display = 'none';
+            }
+        },
+
+        // --- Stepper Rendering Logic ---
+        updateStepper: function(stepIdx) {
+            const container = document.getElementById('comfort-stepper');
+            
+            // Map step index to data values for display
+            // Data mapping logic:
+            const d = this.data;
+            const stepsMap = [];
+            
+            stepsMap.push({idx:0, label:'模式', val: this.getModeLabel(d.mode)});
+            stepsMap.push({idx:1, label:'建議售價', val: d.msrp ? (parseInt(d.msrp)/10000 + '萬') : ''});
+            stepsMap.push({idx:2, label:'分期金額', val: d.amount ? (parseInt(d.amount)/10000 + '萬') : ''});
+            stepsMap.push({idx:3, label:'分期結構', val: d.terms.length ? (d.terms.join('+') + '期') : ''});
+            stepsMap.push({idx:4, label:'牌價利率', val: d.chargeRate ? (d.chargeRate + '%') : ''});
+            if(d.mode !== 3) stepsMap.push({idx:5, label:'客戶利率', val: d.custRate ? (d.custRate + '%') : '未知'});
+            stepsMap.push({idx:6, label:'總代補貼', val: d.agentSub > 0 ? d.agentSub : ''});
+            if(d.mode !== 2) stepsMap.push({idx:7, label:'經銷補貼', val: d.dealerSub > 0 ? d.dealerSub : ''});
+            stepsMap.push({idx:8, label:'月付金額', val: d.payments.length ? '已填' : ''});
+            stepsMap.push({idx:9, label:'結果', val: ''});
+
+            // Generate HTML
+            let html = '';
+            stepsMap.forEach((s, i) => {
+                let status = '';
+                if(s.idx < stepIdx) status = 'done';
+                if(s.idx === stepIdx) status = 'active';
+                
+                html += `
+                    <div class="step-item ${status}">
+                        <div class="step-circle">${s.idx === 9 ? '★' : i+1}</div>
+                        <div class="step-label">${s.label}</div>
+                        <div class="step-data">${s.val}</div>
+                    </div>
+                    ${i < stepsMap.length - 1 ? `<div class="step-line ${status}"></div>` : ''}
+                `;
+            });
+
+            container.innerHTML = html;
+            // Scroll to active
+            setTimeout(() => {
+                const active = container.querySelector('.active');
+                if(active) active.scrollIntoView({behavior:'smooth', inline:'center'});
+            }, 100);
+        },
+        
+        getModeLabel: function(m) {
+            if(m===1) return '月付款';
+            if(m===2) return '補貼';
+            if(m===3) return '回推';
+            return '';
+        },
+
+        renderStep0: function() {
+            this.data.step = 0;
+            this.updateStepper(0);
+            const html = `
+                <div class="c-title">請問您今天要算什麼？</div>
+                <div class="c-btn-group" style="flex-direction: column;">
+                    <button class="c-btn-option" onclick="ComfortMode.setMode(1)">💰 我要算月付款</button>
+                    <button class="c-btn-option" onclick="ComfortMode.setMode(2)">🏢 我要算經銷商補貼息/退利率佣</button>
+                    <button class="c-btn-option" onclick="ComfortMode.setMode(3)">🔄 我要回推客戶利率</button>
+                </div>
+            `;
+            document.getElementById('comfort-question-area').innerHTML = html;
+        },
+
+        setMode: function(mode) {
+            this.data.mode = mode;
+            this.nextStep();
+        },
+
+        nextStep: function() {
+            this.data.step++;
+            this.renderRouter(this.data.step);
+        },
+
+        prevStep: function() {
+            if(this.data.step <= 0) return;
+            this.data.step--;
+            if(this.data.step === 0) this.renderStep0();
+            else this.renderRouter(this.data.step);
+        },
+
+        renderRouter: function(step) {
+            this.updateStepper(step);
+            const d = this.data;
+            switch(step) {
+                case 1: this.renderMSRP(); break;
+                case 2: this.renderAmount(); break;
+                case 3: this.renderPayType(); break;
+                case 4: this.renderChargeRate(); break;
+                case 5: 
+                    if(d.mode === 3) this.nextStep(); 
+                    else this.renderCustRate(); 
+                    break;
+                case 6: this.renderAgentSub(); break;
+                case 7: 
+                    if(d.mode === 2) this.nextStep();
+                    else this.renderDealerSub();
+                    break;
+                case 8: this.renderPayments(); break;
+                case 9: this.renderDashboard(); break;
+            }
+        },
+
+        renderMSRP: function() {
+            const html = `
+                <div class="c-title">建議售價 (MSRP)</div>
+                <div class="c-subtitle">非必填，僅供參考</div>
+                <input type="number" id="inp-msrp" class="c-input" placeholder="請輸入金額" value="${this.data.msrp}" onkeydown="if(event.key==='Enter') ComfortMode.saveMSRP()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveMSRP()">送出 / 略過</button>
+            `;
+            this.renderHTML(html, 'inp-msrp');
+        },
+        saveMSRP: function() {
+            this.data.msrp = document.getElementById('inp-msrp').value;
+            this.nextStep();
+        },
+
+        renderAmount: function() {
+            const html = `
+                <div class="c-title">分期金額</div>
+                <input type="number" id="inp-amt" class="c-input" placeholder="例如: 1000000" value="${this.data.amount}" onkeydown="if(event.key==='Enter') ComfortMode.saveAmount()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveAmount()">送出</button>
+            `;
+            this.renderHTML(html, 'inp-amt');
+        },
+        saveAmount: function() {
+            const val = document.getElementById('inp-amt').value;
+            if(!val || val <= 0) return this.showError("金額必須大於0");
+            this.data.amount = val;
+            this.nextStep();
+        },
+
+        renderPayType: function() {
+            const html = `
+                <div class="c-title">付款方式</div>
+                <div class="c-btn-group" style="margin-bottom:20px;">
+                    <button class="c-btn-option" id="btn-type-c" onclick="ComfortMode.selectType('classic')">均攤 (Classic)</button>
+                    <button class="c-btn-option" id="btn-type-b" onclick="ComfortMode.selectType('balloon')">尾款 (Balloon)</button>
+                    <button class="c-btn-option" id="btn-type-s" onclick="ComfortMode.selectType('step')">階段 (Step)</button>
+                </div>
+                <div id="terms-container"></div>
+                <button class="c-btn-submit" onclick="ComfortMode.saveTerms()">送出</button>
+            `;
+            this.renderHTML(html);
+            if(this.data.payType) this.selectType(this.data.payType);
+        },
+        selectType: function(type) {
+            this.data.payType = type;
+            ['c','b','s'].forEach(k => {
+                const el = document.getElementById(`btn-type-${k}`);
+                if(el) el.classList.remove('selected');
+            });
+            document.getElementById(`btn-type-${type[0]}`).classList.add('selected');
+            
+            let inputs = '';
+            if(type === 'classic') inputs = `<input type="number" class="c-input term-input" placeholder="期數 (例如 60)" value="60">`;
+            if(type === 'balloon') inputs = `<input type="number" class="c-input term-input" placeholder="期數" style="margin-bottom:10px;"><input type="number" class="c-input term-input" placeholder="尾款期數 (通常為1)" value="1">`;
+            if(type === 'step') {
+                for(let i=0; i<5; i++) inputs += `<input type="number" class="c-input term-input" placeholder="第${i+1}段期數" style="width:45%; margin:2%;">`;
+            }
+            document.getElementById('terms-container').innerHTML = inputs;
+        },
+        saveTerms: function() {
+            if(!this.data.payType) return this.showError("請選擇付款方式");
+            const inputs = document.querySelectorAll('.term-input');
+            let terms = [];
+            inputs.forEach(inp => { if(inp.value && inp.value > 0) terms.push(inp.value) });
+            if(terms.length === 0) return this.showError("請至少輸入一個期數");
+            this.data.terms = terms;
+            this.nextStep();
+        },
+
+        renderChargeRate: function() {
+            const html = `
+                <div class="c-title">牌價利率 (%)</div>
+                <input type="number" id="inp-charge" class="c-input" inputmode="decimal" placeholder="例如: 3.5" value="${this.data.chargeRate}" onkeydown="if(event.key==='Enter') ComfortMode.saveCharge()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveCharge()">送出</button>
+            `;
+            this.renderHTML(html, 'inp-charge');
+        },
+        saveCharge: function() {
+            const val = document.getElementById('inp-charge').value;
+            if(!val) return this.showError("請輸入牌價利率");
+            this.data.chargeRate = val;
+            this.nextStep(); 
+        },
+
+        renderCustRate: function() {
+            const isRequired = (this.data.mode === 2);
+            let html = `
+                <div class="c-title">客戶利率 (%)</div>
+                <div class="c-subtitle">${isRequired ? '<span style="color:red">請輸入利率，或點擊下方按鈕略過</span>' : '若未填則等於牌價利率'}</div>
+                <input type="number" id="inp-cust" class="c-input" inputmode="decimal" placeholder="例如: 2.99" value="${this.data.custRate}" onkeydown="if(event.key==='Enter') ComfortMode.saveCust()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveCust()">送出</button>
+                ${isRequired ? `<button class="c-btn c-btn-secondary" style="margin-top:10px; width:80%;" onclick="ComfortMode.skipCust()">略過 (由月付款反推)</button>` : ''}
+            `;
+            this.renderHTML(html, 'inp-cust');
+        },
+        saveCust: function() {
+            let val = document.getElementById('inp-cust').value;
+            if(this.data.mode === 2 && !val) return this.showError("請輸入利率或點擊略過");
+            if(!val && this.data.mode === 1) val = this.data.chargeRate; 
+            this.data.custRate = val;
+            this.nextStep();
+        },
+        skipCust: function() {
+            this.data.custRate = ''; // Explicitly null for calc mode
+            this.nextStep();
+        },
+
+        renderAgentSub: function() {
+            const html = `
+                <div class="c-title">總代理補貼款</div>
+                <div class="c-subtitle">若無請填 0</div>
+                <input type="number" id="inp-asub" class="c-input" placeholder="金額" value="${this.data.agentSub}" onkeydown="if(event.key==='Enter') ComfortMode.saveAgentSub()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveAgentSub()">送出</button>
+            `;
+            this.renderHTML(html, 'inp-asub');
+        },
+        saveAgentSub: function() {
+            const val = document.getElementById('inp-asub').value || 0;
+            this.data.agentSub = val;
+            this.nextStep();
+        },
+
+        renderDealerSub: function() {
+            const html = `
+                <div class="c-title">經銷商補貼款</div>
+                <div class="c-subtitle">若無請填 0</div>
+                <input type="number" id="inp-dsub" class="c-input" placeholder="金額" value="${this.data.dealerSub}" onkeydown="if(event.key==='Enter') ComfortMode.saveDealerSub()">
+                <button class="c-btn-submit" onclick="ComfortMode.saveDealerSub()">送出</button>
+            `;
+            this.renderHTML(html, 'inp-dsub');
+        },
+        saveDealerSub: function() {
+            const val = document.getElementById('inp-dsub').value || 0;
+            this.data.dealerSub = val;
+            this.nextStep();
+        },
+
+        renderPayments: function() {
+            let inputsHTML = '';
+            const count = this.data.terms.length;
+            const mode = this.data.mode;
+            const hasCustRate = (this.data.custRate !== '');
+            
+            // Logic guide string
+            let guide = "";
+            if (mode === 2) { // Subsidy Mode
+                if(hasCustRate) guide = "您已鎖定客戶利率，請<span style='color:red'>保留一個欄位空白</span>讓系統計算月付款。";
+                else guide = "您選擇由月付款反推，請<span style='color:red'>填寫所有欄位</span>。";
+            } else if (mode === 3) {
+                guide = "計算利率模式，請<span style='color:red'>填寫所有欄位</span>。";
+            } else {
+                guide = "若為均攤可全空，若有尾款請填寫已知部分。";
+            }
+
+            for(let i=0; i<count; i++) {
+                inputsHTML += `
+                    <div style="text-align:left; width:80%; margin-top:10px;">第 ${i+1} 筆月付款 (${this.data.terms[i]}期):</div>
+                    <input type="number" class="c-input pay-input" data-idx="${i}" placeholder="輸入金額" style="margin-bottom:5px;">
+                `;
+            }
+
+            const html = `
+                <div class="c-title">月付款設定</div>
+                <div class="c-subtitle">${guide}</div>
+                <div style="max-height: 40vh; overflow-y:auto; width:100%; display:flex; flex-direction:column; align-items:center;">
+                    ${inputsHTML}
+                </div>
+                <button class="c-btn-submit" onclick="ComfortMode.savePayments()">送出並計算</button>
+            `;
+            this.renderHTML(html);
+        },
+        savePayments: function() {
+            const inputs = document.querySelectorAll('.pay-input');
+            let pays = [];
+            let emptyCount = 0;
+            inputs.forEach(inp => {
+                pays.push(inp.value);
+                if(!inp.value) emptyCount++;
+            });
+
+            // Validation Logic
+            const mode = this.data.mode;
+            const hasCustRate = (this.data.custRate !== '');
+
+            if (mode === 2) {
+                if (hasCustRate) {
+                    // Path B: Must have at least 1 empty to calc
+                    if(emptyCount === 0) return this.showError("既鎖定利率又填滿月付款，系統無法計算。請清空一欄。");
+                } else {
+                    // Path A: Must fill all
+                    if(emptyCount > 0) return this.showError("反推模式下，所有月付款都必須輸入！");
+                }
+            }
+            if (mode === 3) {
+                if(emptyCount > 0) return this.showError("回推利率模式下，所有月付款都必須輸入！");
+            }
+
+            this.data.payments = pays;
+            
+            this.syncToOriginalCore(false); 
+            smartSolve(); 
+            this.nextStep();
+        },
+
+        toggleSubsidyDisplay: function() {
+            const isChecked = document.getElementById('show-dealer-sub').checked;
+            const subRow = document.getElementById('dash-sub-row');
+            if(subRow) {
+                subRow.style.display = isChecked ? 'block' : 'none';
+            }
+        },
+
+        renderDashboard: function() {
+            const d = this.data;
+            const resValText = document.getElementById('res-val').innerText;
+            const resValColor = document.getElementById('res-val').style.color;
+            const resTotal = document.getElementById('d-total-pmt').innerText;
+            const resIRR_raw = document.getElementById('d-crate').innerText; 
+            
+            // Format IRR (Floor to 2 decimals)
+            let displayIRR = resIRR_raw;
+            if(resIRR_raw.includes('%')) {
+                let num = parseFloat(resIRR_raw.replace('%',''));
+                if(!isNaN(num)) {
+                    displayIRR = (Math.floor(num * 100) / 100) + '%';
+                }
+            }
+            
+            const fullSummary = document.getElementById('d-summary').innerHTML;
+            
+            let heroLabel = "月付款 / 完整結構";
+            let heroValue = fullSummary;
+            
+            // Dynamic Label Logic based on COLOR
+            let dynamicLabel = "經銷商補貼";
+            // Core Logic: Red = Cost (Subsidy), Green = Profit (Commission)
+            // Color can be hex or rgb depending on browser
+            if (resValColor === 'rgb(22, 163, 74)' || resValColor === '#16a34a') {
+                dynamicLabel = "退利率佣";
+            }
+
+            if(d.mode === 2) { 
+                heroLabel = dynamicLabel;
+                heroValue = resValText; 
+            } else if(d.mode === 3) { 
+                heroLabel = "客戶實際利率 (IRR)";
+                heroValue = displayIRR;
+            }
+
+            const html = `
+                <div class="dash-card-pro">
+                    <div class="pro-header">
+                        <div class="pro-title">試算結果</div>
+                        <div class="pro-tag">BSD Core Verified</div>
+                    </div>
+
+                    <div class="pro-hero">
+                        <div class="pro-hero-label">${heroLabel}</div>
+                        <div class="pro-hero-val" style="${d.mode === 2 ? `color:${resValColor}` : ''}">${heroValue}</div>
+                        
+                        <div id="dash-sub-row" style="display:none; margin-top:15px; border-top:1px dashed rgba(255,255,255,0.3); padding-top:10px;">
+                            <div class="pro-hero-label">${dynamicLabel} (核心運算)</div>
+                            <div class="pro-val" style="font-size:1.5rem; ${`color:${resValColor}`}">${resValText}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pro-grid">
+                        <div class="pro-item"><div class="pro-label">分期金額</div><div class="pro-val">$${parseInt(d.amount).toLocaleString()}</div></div>
+                        <div class="pro-item"><div class="pro-label">建議售價</div><div class="pro-val">$${d.msrp ? parseInt(d.msrp).toLocaleString() : '-'}</div></div>
+                        <div class="pro-item wide"><div class="pro-label">完整月付款結構</div><div class="pro-val" style="font-size:1rem; line-height:1.4;">${fullSummary}</div></div>
+                        
+                        <div class="pro-item"><div class="pro-label">期數結構</div><div class="pro-val">${d.terms.join('+')} 期</div></div>
+                        <div class="pro-item"><div class="pro-label">付款方式</div><div class="pro-val" style="text-transform:capitalize">${d.payType}</div></div>
+                        <div class="pro-item"><div class="pro-label">總付款</div><div class="pro-val">${resTotal}</div></div>
+                        <div class="pro-item"><div class="pro-label">客戶利率</div><div class="pro-val">${displayIRR}</div></div>
+                    </div>
+
+                    <div class="pro-footer">
+                        本結果僅供參考，本公司保留最終審核及解釋之權利。<br>請截圖保存或點擊下方按鈕離開。
+                    </div>
+                </div>
+                
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="show-dealer-sub" onchange="ComfortMode.toggleSubsidyDisplay()">
+                        <span class="slider"></span>
+                        顯示補貼/退佣
+                    </label>
+                </div>
+
+                <button class="c-btn-submit" style="margin-top:10px;" onclick="ComfortMode.finish()">✅ 完成並離開</button>
+                <button class="c-btn-restart" style="margin-top:10px; width:80%;" onclick="ComfortMode.init()">🔄 重新計算</button>
+            `;
+            document.getElementById('comfort-question-area').innerHTML = html;
+        },
+
+        finish: function() {
+            document.getElementById('comfort-overlay').style.display = 'none';
+        },
+
+        syncToOriginalCore: function(showAlert = true) {
+            const d = this.data;
+            document.getElementById('MSRP').value = d.msrp;
+            document.getElementById('B20').value = d.amount;
+            document.getElementById('B4').value = d.chargeRate;
+
+            const rateLock = document.getElementById('rateLock');
+            // Logic Fix: If custRate is explicitly set (Path B), lock it. If empty (Path A), unlock it.
+            if(d.custRate !== '' && d.custRate !== null) {
+                document.getElementById('CRate').value = d.custRate;
+                rateLock.checked = true; 
+            } else {
+                rateLock.checked = false; 
+                document.getElementById('CRate').value = '';
+            }
+
+            // CRITICAL LOGIC: Agent Subsidy Security
+            // Only allow agent subsidy if user explicitly entered > 0 in comfort mode.
+            if (d.agentSub && parseFloat(d.agentSub) > 0) {
+                document.getElementById('SubAgent').value = d.agentSub;
+                document.getElementById('agentLock').checked = true;
+            } else {
+                document.getElementById('SubAgent').value = 0; // Force Reset
+                document.getElementById('agentLock').checked = false; // Force Unlock
+            }
+
+            document.getElementById('SubDealer').value = d.dealerSub;
+            document.getElementById('dealerLock').checked = (parseFloat(d.dealerSub) > 0);
+
+            const pMs = document.querySelectorAll('.p-m');
+            const pVs = document.querySelectorAll('.p-v');
+            
+            pMs.forEach(i => i.value = '');
+            pVs.forEach(i => i.value = '');
+
+            for(let i=0; i < d.terms.length; i++) {
+                if(pMs[i]) pMs[i].value = d.terms[i];
+                if(pVs[i] && d.payments[i]) pVs[i].value = d.payments[i];
+            }
+            updateUI();
+            if(showAlert) alert("數據已帶入核心！");
+        },
+
+        renderHTML: function(html, focusId) {
+            document.getElementById('comfort-question-area').innerHTML = html;
+            document.getElementById('comfort-error-msg').innerText = '';
+            if(focusId && !(/Android|iPhone/i.test(navigator.userAgent))) {
+                setTimeout(() => document.getElementById(focusId).focus(), 100);
+            }
+        },
+        showError: function(msg) {
+            document.getElementById('comfort-error-msg').innerText = msg;
+        }
+    };
 </script>
 </body>
 </html>
