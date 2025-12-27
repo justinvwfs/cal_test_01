@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BSD專屬精算核心 - 葵花寶典加強版</title
+    <title>BSD專屬精算核心 - 2025 Excel優化版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
@@ -36,11 +36,8 @@
         .btn-back { background: #64748b; color: white; padding: 8px 16px; font-size: 13px; border-radius: 20px; }
         .btn-super-gen { width: 100%; background: linear-gradient(135deg, #001e50 0%, #004e92 100%); color: white; padding: 16px; font-size: 18px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 78, 146, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .btn-reset { width: 100%; background: #f1f5f9; color: #64748b; padding: 10px; margin-top: 10px; }
-        
-        /* Excel Button Styling */
-        .btn-excel { background: #107c41; color: white; padding: 8px 15px; font-size: 13px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(16, 124, 65, 0.2); }
+        .btn-excel { background: #107c41; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(16, 124, 65, 0.2); }
         .btn-excel:hover { background: #0c5e31; }
-
         .btn-rev { background: var(--warning); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
         .btn-del { background: var(--danger); color: white; font-size: 11px; padding: 4px 10px; border-radius: 4px; }
         .btn-gen-row { background: var(--success); color: white; padding: 12px; font-size: 15px; width: 100%; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
@@ -77,7 +74,6 @@
         .sf-table td.row-header { position: sticky; left: 0; z-index: 9; background: #f8fafc; font-weight: 900; border-right: 2px solid #cbd5e1; color: var(--vw-blue); }
         .sf-table tr:nth-child(even) { background: #f8fafc; }
 
-        /* Amort Table Customization */
         #amortTable td { color: #334155; font-weight: bold; }
         #amortTable td:nth-child(2) { color: var(--vw-blue); font-weight: 900; font-size: 14px; }
         #amortTable td:nth-child(5) { color: #94a3b8; font-weight: normal; }
@@ -141,13 +137,13 @@
                     <div class="section-title">
                         <div>BSD專屬精算核心 <span class="author-tag">今晚沒喝夠的小賈哥</span></div>
                         <button class="btn btn-factory-entry" onclick="switchView('factory')">
-                            <span>✨</span> 葵花寶典工廠
+                            <span>✨</span> 葵花寶典小工廠
                         </button>
                     </div>
                     
                     <div class="input-group"><label>建議售價 MSRP</label><input type="number" id="MSRP" placeholder="可輸入車輛原始售價" oninput="updateUI()"></div>
-                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入分期本金" oninput="updateUI()"></div>
-                    <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入牌價利率" oninput="syncRate()"></div>
+                    <div class="input-group"><label>分期本金 <span class="req">*</span></label><input type="number" id="B20" placeholder="請輸入貸款分期總額" oninput="updateUI()"></div>
+                    <div class="input-group"><label>牌價利率 % <span class="req">*</span></label><input type="number" id="B4" step="0.01" placeholder="請輸入合約牌價利率" oninput="syncRate()"></div>
                     
                     <div class="input-group">
                         <div class="check-wrap"><label style="margin:0;">客戶利率 %</label><input type="checkbox" id="rateLock" onchange="updateUI()"><span class="check-label">鎖定</span></div>
@@ -201,7 +197,7 @@
                             本息攤還表 
                             <div style="display:flex; gap:10px;">
                                 <button class="btn btn-excel" onclick="exportSingleExcel()">匯出 EXCEL</button>
-                                <button class="btn btn-export" onclick="window.print()">列印 / 另存 PDF</button>
+                                <button class="btn btn-export" onclick="exportPDF()">列印 / 另存 PDF</button>
                             </div>
                         </div>
                         <div class="table-container"><table id="amortTable" class="sf-table"><thead><tr><th>期數</th><th>月付款</th><th>利息</th><th>本金</th><th>餘額</th></tr></thead><tbody></tbody></table></div>
@@ -321,7 +317,7 @@
 </div>
 
 <script>
-    // --- Core Logic ---
+    // --- 核心計算 (嚴禁修改) ---
     function calculateActualS(B20, B4_m, flows) {
         let npv_unit = 0; 
         flows.forEach((pmt, i) => { npv_unit += (pmt / B20 * 10000) / Math.pow(1 + B4_m, i + 1); });
@@ -336,7 +332,7 @@
         } return r;
     }
 
-    // --- Init ---
+    // --- View Controller ---
     function initAll() { initApp(); syncFactoryLock(); }
     function switchView(viewName) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -344,7 +340,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- Tab 1 ---
+    // --- Tab 1 Logic ---
     function initApp() {
         document.querySelectorAll('#view-single input[type="checkbox"]').forEach(c => c.checked = false);
         document.querySelectorAll('#view-single input:not([type="checkbox"])').forEach(i => i.value = "");
@@ -374,7 +370,7 @@
     }
     function smartSolve() {
         const B20 = parseFloat(document.getElementById('B20').value), B4_v = parseFloat(document.getElementById('B4').value);
-        if(!B20 || !B4_v) return alert("本金跟牌價利率要填喔！");
+        if(!B20 || !B4_v) return alert("賈哥，本金跟牌價利率要填喔！");
         const rLock = document.getElementById('rateLock').checked;
         const aLock = document.getElementById('agentLock').checked;
         const dLock = document.getElementById('dealerLock').checked;
@@ -451,6 +447,62 @@
         });
         updateUI();
     }
+    
+    // === PDF Export (Native Print) ===
+    function exportPDF() {
+        var container = document.createElement('div');
+        container.style.position = 'fixed'; 
+        container.style.top = '0'; 
+        container.style.left = '0';
+        container.style.zIndex = '9999';
+        container.style.background = 'white';
+        // A4 Width at 96dpi is ~794px. We set it slightly smaller to ensure margins fit.
+        container.style.width = '790px'; 
+        
+        var element = document.getElementById('print-area');
+        var clone = element.cloneNode(true);
+        
+        // Reset Clone Styles for Desktop-like layout
+        clone.style.width = '100%';
+        clone.style.margin = '0';
+        clone.style.padding = '20px';
+        clone.style.boxShadow = 'none';
+        
+        // Fix dashboard layout (Force 2-column)
+        var dashRow = clone.querySelector('.dash-row');
+        if(dashRow) {
+            dashRow.style.display = 'grid';
+            dashRow.style.gridTemplateColumns = '1fr 1fr';
+            dashRow.style.gap = '15px';
+        }
+
+        // Allow table full height
+        var tableContainer = clone.querySelector('.table-container');
+        if(tableContainer) {
+            tableContainer.style.overflow = 'visible';
+            tableContainer.style.maxHeight = 'none';
+        }
+
+        document.body.appendChild(container);
+        container.appendChild(clone);
+
+        var opt = {
+            margin: 10,
+            filename: 'BSD_分期報告書.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true,
+                scrollX: 0, // Critical: Reset scroll to capture from top-left
+                scrollY: 0
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(container).save().then(function(){
+            document.body.removeChild(container);
+        });
+    }
 
     // === Excel Export for Tab 1 ===
     function exportSingleExcel() {
@@ -500,12 +552,101 @@
         }
     }
 
+    // === EXCEL EXPORT (RE-CALCULATION MODE) ===
     function exportToExcel() {
+        // 1. Matrix Data Construction
+        const start = parseInt(document.getElementById('R-Start').value) * 10000;
+        const end = parseInt(document.getElementById('R-End').value) * 10000;
+        const step = parseInt(document.getElementById('R-Step').value) * 10000;
+        const terms = Array.from(document.querySelectorAll('.term-selector input:checked')).map(c=>parseInt(c.value));
+        
+        let matrixData = [];
+        // Header
+        let headerRow = ["分期金額", ...terms.map(t => t + "期")];
+        matrixData.push(headerRow);
+
+        for(let amt=start; amt<=end; amt+=step) {
+            let row = [amt.toLocaleString()]; // Amount col
+            terms.forEach(t => {
+                let cell = calcFactoryCell(amt, t, null, null, null);
+                // Get subsidy info
+                const chargeM = cell.chargeRateM;
+                const loan = amt;
+                const pmt = cell.pmt;
+                // Re-calc stats for export text
+                let flows = new Array(t).fill(pmt);
+                let irr = solveIRR(-loan, flows);
+                if(irr<0) irr=0;
+                let rate = (irr*1200).toFixed(2);
+                let totalS = calculateActualS(loan, chargeM, flows);
+                let subNeeded = totalS < 0 ? Math.abs(totalS) : 0;
+                let commission = totalS > 0 ? totalS : 0;
+                const agentMax = parseFloat(document.getElementById('F-SubAgent').value)||0;
+                let agentUsed = Math.min(subNeeded, agentMax);
+                let dealerUsed = subNeeded - agentUsed;
+                
+                // Format Cell Text
+                let cellText = `NT$${pmt}\n${rate}%`;
+                if(commission > 0) cellText += `\n佣:${commission}`;
+                else if(dealerUsed > 0 && document.getElementById('F-PriorityLock').checked) cellText += `\nD:${dealerUsed}`;
+                
+                row.push(cellText);
+            });
+            matrixData.push(row);
+        }
+
+        // 2. Manual List Data Construction
+        let listData = [["分期金額", "付款明細", "客戶利率", "經銷商補貼", "總代理補貼實際使用"]];
+        
+        // We need to parse the DOM rows because the user might have deleted some or changed order.
+        // But the data is in the hidden div.
+        let listRows = document.querySelectorAll('#manual-results-body tr');
+        listRows.forEach(tr => {
+            // Parse data from hidden div
+            let dataDiv = tr.querySelector('div[id^="data-"]');
+            if(!dataDiv) return;
+            let phases = JSON.parse(dataDiv.innerText);
+            
+            // We need to know the Loan Amount. It's in the first TD but formatted. 
+            // Better to re-calculate from phases? No, loan amount is not in phases JSON.
+            // Let's grab it from the first TD text (remove commas and '萬' if any, but we are using full numbers now)
+            let loanText = tr.cells[0].innerText.replace(/,/g, '');
+            let loan = parseFloat(loanText);
+
+            // Re-calc to get split subsidy numbers. 
+            // We need the rates used for this row.
+            // The revise function passes them, but here we iterate.
+            // Wait, the row doesn't store the rates! The rates are in the 'revise' button onclick attribute.
+            // Let's grab them from the onclick string. Hacky but works.
+            let btnHTML = tr.cells[4].innerHTML;
+            let match = btnHTML.match(/reviseManualRow\('[^']+',\s*(\d+),\s*([^,]+),\s*([^)]+)\)/);
+            let mCharge = null, mCust = null;
+            if(match) {
+                mCharge = match[2] === 'null' ? null : parseFloat(match[2]);
+                mCust = match[3] === 'null' ? null : parseFloat(match[3]);
+            }
+
+            let res = calcManualPhases(loan, phases, null, mCharge, mCust);
+            
+            // Format Phase String
+            let phaseStr = res.details.map(d => d.replace(/<[^>]+>/g, '')).join(' | '); // Strip HTML tags
+            
+            listData.push([
+                "NT$" + loan, // String format to prevent excel auto-format
+                phaseStr,
+                res.rate + "%",
+                res.dealerUsed > 0 ? res.dealerUsed : 0,
+                res.agentUsed > 0 ? res.agentUsed : 0
+            ]);
+        });
+
+        // 3. Create Workbook
         var wb = XLSX.utils.book_new();
-        var ws_matrix = XLSX.utils.table_to_sheet(document.getElementById('sf-matrix'));
+        var ws_matrix = XLSX.utils.aoa_to_sheet(matrixData);
+        var ws_list = XLSX.utils.aoa_to_sheet(listData);
+        
         XLSX.utils.book_append_sheet(wb, ws_matrix, "速算矩陣");
-        var ws_manual = XLSX.utils.table_to_sheet(document.querySelector('.result-list-table'));
-        XLSX.utils.book_append_sheet(wb, ws_manual, "手動試算清單");
+        XLSX.utils.book_append_sheet(wb, ws_list, "手動試算清單");
         XLSX.writeFile(wb, 'BSD_葵花寶典.xlsx');
     }
 
@@ -567,6 +708,7 @@
                     pmt++;
                 }
             }
+            // 0% Floor
             let minPmt = Math.ceil(loan / term);
             if(pmt < minPmt) pmt = minPmt;
         }
