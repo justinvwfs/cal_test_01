@@ -105,7 +105,6 @@
         .detail-item { background: #f1f5f9; padding: 4px 10px; border-radius: 4px; font-weight: bold; color: #334155; font-size: 12px; white-space: nowrap; border: 1px solid #e2e8f0; }
 
         /* --- 眼睛超舒服模式 CSS Start --- */
-        /* ★★★ 按鈕顯示修復：z-index 提高，position 修正 ★★★ */
         .comfort-trigger-btn {
             background-color: #2ecc71; color: white; border: none; padding: 10px 20px;
             border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: bold;
@@ -115,12 +114,11 @@
             text-align: center; position: relative; z-index: 100;
         }
 
-        /* ★★★ Overlay CSS (含最終修正：flex-start 與 padding) ★★★ */
         .comfort-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #f0f2f5; z-index: 9999;
             display: flex; flex-direction: column;
-            padding-top: 20px; /* 這裡不需要太多，因為 Container 已經有了 */
+            padding-top: 20px; 
             box-sizing: border-box; 
             font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
         }
@@ -131,7 +129,7 @@
             border-bottom: 1px solid #e0e0e0;
             display: flex; align-items: center; justify-content: flex-start;
             padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            overflow-x: auto; gap: 15px; flex-shrink: 0; /* 防止被擠壓 */
+            overflow-x: auto; gap: 15px; flex-shrink: 0; 
         }
 
         .step-item {
@@ -149,7 +147,7 @@
             margin-top: 6px; font-size: 11px; color: #999; font-weight: bold;
             white-space: nowrap;
         }
-        /* 進度條下方的數據顯示 (淡入動畫) */
+        /* 進度條下方的數據顯示 */
         .step-data {
             font-size: 10px; color: #2ecc71; font-weight: 900;
             margin-top: 2px; height: 14px; opacity: 0; transition: opacity 0.5s ease-in-out;
@@ -160,7 +158,6 @@
             width: 20px; height: 2px; background: #e0e0e0; margin-top: -20px; flex-shrink: 0;
         }
 
-        /* Active/Done States */
         .step-item.active { opacity: 1; transform: scale(1.05); }
         .step-item.active .step-circle { background: #2ecc71; color: white; box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3); border-color: #2ecc71; }
         .step-item.active .step-label { color: #2ecc71; }
@@ -171,14 +168,14 @@
         .step-item.done .step-data { opacity: 1; }
         .step-line.done { background: #27ae60; }
 
-        /* ★★★ 修正點：改用 flex-start 並增加 padding-top，確保儀表板不被遮擋 ★★★ */
+        /* PC Layout Default (Flex Start for visibility) */
         .comfort-container {
             flex: 1; 
             display: flex; 
             flex-direction: column;
-            justify-content: flex-start; /* 從上往下排，而非置中 */
+            justify-content: flex-start;
             align-items: center;
-            padding: 40px 20px 20px 20px; /* 上方保留 40px 間距 */
+            padding: 40px 20px 20px 20px;
             overflow-y: auto;
         }
 
@@ -215,7 +212,6 @@
         }
         .c-btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; }
         .c-btn-secondary { background: #eee; color: #555; }
-        /* 重新計算按鈕：幽靈按鈕風格 */
         .c-btn-restart { 
             background: transparent; border: 2px solid #2ecc71; color: #2ecc71; 
             padding: 10px 20px; border-radius: 50px; font-weight: bold;
@@ -243,7 +239,7 @@
         .pro-title { font-size: 1.2rem; font-weight: bold; color: #4ade80; }
         .pro-tag { background: rgba(255,255,255,0.2); font-size: 0.8rem; padding: 4px 10px; border-radius: 12px; }
         
-        /* 補貼顯示開關：Toggle Switch Style */
+        /* Toggle Switch Style */
         .toggle-container { margin-top: 15px; display: flex; justify-content: flex-end; width: 100%; }
         .toggle-switch { display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #2c3e50; font-weight: bold; }
         .toggle-switch input { display: none; }
@@ -267,6 +263,7 @@
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         /* --- 眼睛超舒服模式 CSS End --- */
 
+        /* ★★★ 手機版專屬優化 (Screenshot Friendly) ★★★ */
         @media (max-width: 768px) {
             .single-grid { grid-template-columns: 1fr; }
             .factory-range { grid-template-columns: 1fr 1fr; }
@@ -274,25 +271,43 @@
             .manual-top-grid { grid-template-columns: 1fr; gap: 10px; }
             .section-title { font-size: 1.1rem; }
             .sf-table th, .sf-table td { padding: 8px 4px; }
+
+            /* 手機版儀表板緊湊化 */
+            .comfort-container {
+                padding: 10px 10px 20px 10px; /* 減少上方留白，讓儀表板盡量滿版 */
+                justify-content: flex-start; 
+            }
+            .dash-card-pro {
+                padding: 15px; /* 減少卡片內距 */
+                border-radius: 15px;
+            }
+            .pro-hero { margin-bottom: 15px; padding: 10px; }
+            .pro-hero-val { font-size: 1.5rem; } /* 字體微調，避免換行 */
+            .pro-grid { gap: 8px; } /* 網格更緊密 */
+            .pro-item { padding: 8px; }
+            .pro-val { font-size: 1rem; }
+            
+            /* 按鈕區域緊湊 */
+            .c-btn-submit, .c-btn-restart {
+                margin-top: 10px;
+                padding: 10px;
+            }
         }
 
-        /* NATIVE PRINT STYLES - FIXED & RESTORED */
+        /* NATIVE PRINT STYLES */
         @media print {
             @page { size: A4; margin: 10mm; }
             body { 
                 background: white; 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
-                padding: 0 !important; /* Reset padding for print */
+                padding: 0 !important; 
             }
             
-            /* 隱藏舒適模式介面與所有按鈕 */
             #comfort-overlay, .comfort-trigger-btn, .btn, .sidebar button { display: none !important; }
             
-            /* 強制顯示核心內容 */
             .main-container, #view-single, .content, #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; opacity: 1 !important; visibility: visible !important; }
             
-            /* 隱藏側邊輸入欄，只留右側結果 */
             .sidebar { display: none !important; }
             .single-grid { display: block !important; }
             
@@ -323,7 +338,7 @@
                     </div>
                     
                     <button class="comfort-trigger-btn" onclick="ComfortMode.init()">
-                        👁️ 眼睛超舒服模式
+                        👁️ 眼睛超舒服模式 (啟動)
                     </button>
                     
                     <div style="margin-top:15px;"></div>
@@ -397,7 +412,7 @@
     <div id="view-factory" class="view-section">
         <div class="glass-card">
             <div class="section-title">
-                <div>葵花寶典批量生產工廠 <span class="author-tag">Power by BSD Core</span></div>
+                <div>葵花寶典批量生產小工廠 <span class="author-tag">Power by BSD Core</span></div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-excel" onclick="exportToExcel()">匯出 EXCEL</button>
                     <button class="btn btn-back" onclick="switchView('single')">返回精算核心</button>
@@ -698,7 +713,7 @@
     }
 
     function exportToExcel() {
-	// 1. 獲取設定參數
+        // 1. 獲取設定參數
         const start = parseInt(document.getElementById('R-Start').value) * 10000;
         const end = parseInt(document.getElementById('R-End').value) * 10000;
         const step = parseInt(document.getElementById('R-Step').value) * 10000;
@@ -782,8 +797,8 @@
              XLSX.utils.book_append_sheet(wb, ws_manual, "手動試算清單");
         }
 
-        XLSX.writeFile(wb, 'BSD_葵花寶典.xlsx');
-   	 }
+        XLSX.writeFile(wb, 'BSD_葵花寶典_精細版.xlsx');
+    }
 
     function generateMatrix() {
         const start = parseInt(document.getElementById('R-Start').value) * 10000;
@@ -1080,12 +1095,12 @@
             stepsMap.push({idx:0, label:'模式', val: this.getModeLabel(d.mode)});
             stepsMap.push({idx:1, label:'建議售價', val: d.msrp ? (parseInt(d.msrp)/10000 + '萬') : ''});
             stepsMap.push({idx:2, label:'分期金額', val: d.amount ? (parseInt(d.amount)/10000 + '萬') : ''});
-            stepsMap.push({idx:3, label:'分期結構', val: d.terms.length ? (d.terms.join('+') + '期') : ''});
+            stepsMap.push({idx:3, label:'付款結構', val: d.terms.length ? (d.terms.join('+') + '期') : ''});
             stepsMap.push({idx:4, label:'牌價利率', val: d.chargeRate ? (d.chargeRate + '%') : ''});
             if(d.mode !== 3) stepsMap.push({idx:5, label:'客戶利率', val: d.custRate ? (d.custRate + '%') : '未知'});
             stepsMap.push({idx:6, label:'總代補貼', val: d.agentSub > 0 ? d.agentSub : ''});
             if(d.mode !== 2) stepsMap.push({idx:7, label:'經銷補貼', val: d.dealerSub > 0 ? d.dealerSub : ''});
-            stepsMap.push({idx:8, label:'月付金額', val: d.payments.length ? '已填' : ''});
+            stepsMap.push({idx:8, label:'月付內容', val: d.payments.length ? '已填' : ''});
             stepsMap.push({idx:9, label:'結果', val: ''});
 
             // Generate HTML
@@ -1425,7 +1440,7 @@
             const html = `
                 <div class="dash-card-pro">
                     <div class="pro-header">
-                        <div class="pro-title">試算結果</div>
+                        <div class="pro-title">試算結果報告</div>
                         <div class="pro-tag">BSD Core Verified</div>
                     </div>
 
@@ -1451,7 +1466,7 @@
                     </div>
 
                     <div class="pro-footer">
-                        本結果僅供參考，本公司保留最終審核及解釋之權利。<br>請截圖保存或點擊下方按鈕離開。
+                        本試算結果僅供參考，本公司保留最終審核及解釋之權利。<br>請截圖保存或點擊下方按鈕離開。
                     </div>
                 </div>
                 
