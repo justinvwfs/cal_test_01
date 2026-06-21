@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BSD 專屬應用系統 · BSD Sales Kit</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="bsd-core.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           BSD DESIGN SYSTEM v4.0
+           CSS variable names preserved for module compatibility
+        ============================================================ */
+        :root {
+            /* ── Velocity 色彩系統 ── */
+            --bg:             #f2f2f2;
+            --bg-white:       #ffffff;
+            --bg-card:        #ffffff;
+            --bg-card-solid:  #ffffff;
+            --bg-frost:       rgba(255,255,255,0.95);
+            --border:         rgba(0,70,102,0.10);
+            --border-focus:   #2b9ab5;
+            --text:           #00253e;
+            --text-secondary: #4c5356;
+            --text-muted:     #a8adb3;
+            --accent:         #004666;
+            --accent-light:   rgba(0,70,102,0.06);
+            --accent2:        #2b9ab5;
+            --accent2-light:  rgba(43,154,181,0.08);
+            --gold:           #d8aa00;
+            --danger:         #ff4963;
+            --success:        #95a844;
+            --warning:        #d8aa00;
+            --nav-dark:       #00253e;
+            --radius:         8px;
+            --radius-sm:      8px;
+            --radius-xs:      6px;
+            --shadow-xs:  0 1px 3px rgba(0,37,62,0.06);
+            --shadow-sm:  0 2px 8px rgba(0,37,62,0.08);
+            --shadow:     0 2px 12px rgba(0,37,62,0.08);
+            --shadow-lg:  0 8px 28px rgba(0,37,62,0.12);
+            --font:  'Plus Jakarta Sans','Noto Sans TC',sans-serif;
+            --mono:  'JetBrains Mono',monospace;
+            --topbar-h: 60px;
+            /* Velocity brand tokens */
+            --petrol:       #004666;
+            --petrol-dark:  #00253e;
+            --petrol-light: #c6dfe7;
+            --cyan:         #2b9ab5;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font);
+            background-color: #f2f2f2;
+            background-image: radial-gradient(rgba(0,70,102,0.086) 1.1px, transparent 1.1px);
+            background-size: 24px 24px;
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body::before, body::after { display: none; }
+
+        /* ===== TOP BAR — Velocity ===== */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            height: var(--topbar-h);
+            background: #00253e;
+            border-bottom: none;
+            box-shadow: none;
+            overflow: hidden;
+        }
+        .topbar-inner {
+            max-width: 1440px; margin: 0 auto;
+            height: 100%; display: flex; align-items: center;
+            padding: 0 28px; gap: 20px;
+        }
+
+        .topbar-brand { display:flex; align-items:center; gap:10px; flex-shrink:0; text-decoration:none; cursor:pointer; position:relative; z-index:2; }
+        .brand-logo {
+            width: 34px; height: 34px;
+            background: #c6dfe7;
+            border-radius: 50%;
+            display: flex; align-items:center; justify-content:center;
+            flex-shrink: 0;
+            box-shadow: none;
+        }
+        .brand-logo-inner { font-size:15px; line-height:1; }
+        .brand-text { line-height: 1.2; }
+        .brand-name { font-weight:800; font-size:.95rem; letter-spacing:-.025em; color:#ffffff; }
+        .brand-name em { font-style:normal; color:#ffffff; -webkit-text-fill-color:#ffffff; background:none; }
+        .brand-sub { font-size:7.5px; color:rgba(255,255,255,0.3); font-family:var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+
+        .topbar-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:3px; position:relative; z-index:2; }
+        .nav-tab {
+            display:flex; flex-direction:row; align-items:center; gap:6px;
+            padding:7px 16px; border-radius:6px;
+            border:none;
+            background:transparent; cursor:pointer;
+            font-family:var(--font); transition:all .2s;
+            color:rgba(255,255,255,0.4);
+        }
+        .nav-tab:hover { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border-color:transparent; }
+        .nav-tab.active { background:#004666; color:#ffffff; border:none; }
+        .nav-tab-text { display:flex; flex-direction:column; gap:1px; }
+        .nav-tab .zt { font-size:11.5px; font-weight:700; white-space:nowrap; }
+        .nav-tab .en { font-size:8.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; opacity:.65; }
+        .nav-tab.active .en { opacity:1; }
+
+        .topbar-end { flex-shrink:0; display:flex; align-items:center; gap:6px; position:relative; z-index:2; }
+        .comfort-nav-btn {
+            display:inline-flex; align-items:center; gap:5px;
+            font-size:10px; font-weight:700; font-family:var(--mono);
+            color:rgba(255,255,255,0.45); cursor:pointer;
+            padding:5px 11px; border-radius:6px;
+            border:1px solid rgba(255,255,255,0.1);
+            background:transparent; transition:all .2s;
+        }
+        .comfort-nav-btn:hover { color:rgba(255,255,255,0.75); border-color:rgba(255,255,255,0.22); }
+        .pro-link {
+            display:inline-flex; align-items:center; gap:5px;
+            font-size:10px; font-weight:700; font-family:var(--mono);
+            color:#c6dfe7; text-decoration:none;
+            padding:5px 13px; border-radius:6px;
+            border:1px solid #2b9ab5;
+            background:rgba(43,154,181,0.14);
+            box-shadow:none;
+            transition:all .2s; cursor:pointer;
+        }
+        .pro-link:hover { background:rgba(43,154,181,0.24); color:#ffffff; }
+
+        /* VeloTop: diagonal speed lines decorating the header centre */
+        .velo-top-svg { position:absolute; top:0; right:0; width:480px; height:100%; pointer-events:none; }
+
+        /* ===== LAYOUT ===== */
+        .main-container { max-width:1440px; margin:0 auto; padding:20px; position:relative; z-index:1; }
+
+        .view-section { display:none; }
+        .view-section.active { display:block; animation:fadeUp .4s cubic-bezier(.22,1,.36,1); }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ===== GLASS CARD — Velocity white card ===== */
+        .glass-card {
+            background: #ffffff;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,37,62,0.08);
+            position: relative;
+            transition: box-shadow .3s;
+        }
+        .glass-card:hover { box-shadow: 0 4px 20px rgba(0,37,62,0.12); }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: #2b9ab5;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .section-title {
+            font-size:1rem; font-weight:800; color:var(--text);
+            margin-bottom:20px; padding-bottom:14px;
+            border-bottom:1px solid var(--border);
+            display:flex; justify-content:space-between; align-items:flex-start;
+            flex-wrap:wrap; gap:10px; letter-spacing:-.02em;
+        }
+        .title-block { display:flex; flex-direction:column; gap:2px; }
+        .title-zh { font-size:1rem; font-weight:800; }
+        .title-en { font-size:9px; font-weight:500; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase; }
+        .author-tag { font-family:var(--mono); font-size:9px; color:var(--accent); font-weight:600; background:var(--accent-light); padding:3px 10px; border-radius:20px; letter-spacing:.03em; white-space:nowrap; margin-top:2px; }
+
+        /* ===== INPUTS ===== */
+        .input-group { margin-bottom:11px; }
+        .input-group label {
+            display:flex; align-items:baseline; gap:4px;
+            font-size:11px; font-weight:700; color:var(--text-secondary);
+            margin-bottom:5px; letter-spacing:.01em;
+        }
+        .input-group label .en { font-size:9px; font-weight:500; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; }
+        .input-group input, .input-group select {
+            width:100%; padding:10px 12px;
+            border-radius:var(--radius-xs); border:1.5px solid var(--border);
+            background:var(--bg-white); font-size:14px; font-weight:700;
+            font-family:var(--mono); color:var(--text);
+            transition:all .2s; outline:none;
+        }
+        .input-group input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.09); }
+        .input-group input::placeholder { color:var(--text-muted); font-weight:400; font-size:12px; }
+        .req { color:var(--danger); margin-left:1px; }
+
+        /* ===== BUTTONS ===== */
+        .btn { cursor:pointer; border:none; font-family:var(--font); font-weight:700; border-radius:var(--radius-xs); touch-action:manipulation; transition:all .2s; white-space:nowrap; }
+        .btn:active { transform:scale(.97); }
+
+        .btn-calc {
+            width:100%;
+            /* veloAccent('#004666', 'rgba(255,255,255,0.08)', 0.56, 8) */
+            background:
+                linear-gradient(135deg, #004666 56%, transparent 56%),
+                repeating-linear-gradient(135deg, transparent, transparent 8px, rgba(255,255,255,0.08) 8px, rgba(255,255,255,0.08) 9.5px),
+                #004666;
+            color:white; padding:22px 11px; font-size:17px; border-radius:8px;
+            box-shadow:none; letter-spacing:-.01em;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .btn-calc:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,70,102,0.28); }
+        .btn-reset { width:100%; background:#ffffff; color:var(--text-secondary); padding:8px; margin-top:6px; border-radius:8px; border:1px solid rgba(0,70,102,0.12); font-size:11px; font-weight:600; }
+        .btn-compare { width:100%; background:linear-gradient(135deg,#0d9488,#0891b2); color:white; padding:10px; margin-top:8px; border-radius:var(--radius-xs); font-size:12px; letter-spacing:.01em; border:none; font-family:var(--font); font-weight:700; cursor:pointer; transition:all .2s; white-space:nowrap; }
+        .btn-compare:hover { opacity:.88; transform:translateY(-1px); }
+        .btn-compare:active { transform:scale(.97); }
+        .compare-hint { display:none; margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; color:#ef4444; font-size:11px; text-align:center; line-height:1.5; }
+        .btn-excel  { background:#14532d; color:white; padding:7px 13px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:7px; }
+        .btn-pdf    { background:#7f1d1d; color:white; padding:7px 13px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:7px; }
+        .btn-export { background:var(--accent-light); color:var(--accent); padding:7px 13px; font-size:11px; border-radius:7px; border:1px solid rgba(37,99,235,0.18); display:inline-flex; align-items:center; gap:4px; }
+        .btn-del { background:var(--danger); color:white; font-size:11px; padding:4px 9px; border-radius:5px; }
+        .btn-rev { background:var(--warning); color:#fff; font-size:11px; padding:3px 8px; border-radius:4px; margin-top:4px; }
+        .btn-audit-run   { background:linear-gradient(135deg,#5b21b6,#7c3aed); color:white; padding:13px; font-size:14px; width:100%; margin-bottom:10px; border-radius:12px; box-shadow:0 4px 16px rgba(91,33,182,0.24); }
+        .btn-audit-clear { background:var(--bg); color:var(--text-muted); padding:10px; width:100%; border:1px solid var(--border); border-radius:var(--radius-xs); font-size:13px; }
+
+        .check-wrap { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+        .check-wrap input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color:var(--accent); }
+        .check-label { font-size:9px; font-weight:700; color:var(--danger); background:rgba(220,38,38,0.08); padding:2px 6px; border-radius:4px; }
+
+        /* ===== SINGLE GRID ===== */
+        .single-grid { display:grid; grid-template-columns:364px 1fr; gap:16px; align-items:start; }
+
+        /* ===== RESULT BOX ===== */
+        .res-box { background:linear-gradient(135deg,#eff6ff,#f0fdfa); border:1px solid rgba(37,99,235,0.09); padding:14px; border-radius:12px; margin:12px 0; text-align:center; }
+        #res-title { font-size:10px; font-weight:600; color:var(--text-secondary); letter-spacing:.05em; text-transform:uppercase; }
+        .res-val { font-family:var(--mono); font-size:1.45rem; font-weight:800; color:var(--success); margin-top:4px; }
+
+        /* Phase inputs */
+        .phase-header, .phase-grid { display:grid; grid-template-columns:56px 1fr 56px; gap:6px; margin-bottom:5px; }
+        .phase-header span { font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:.03em; }
+        .phase-grid input { padding:9px; border-radius:7px; border:1.5px solid var(--border); background:var(--bg-white); font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); outline:none; width:100%; transition:all .2s; }
+        .phase-grid input:focus { border-color:var(--accent); }
+        .pct-label { font-family:var(--mono); font-size:10px; color:var(--text-muted); display:flex; align-items:center; justify-content:flex-end; }
+
+        /* Quick tags */
+        .quick-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:11px; }
+        .quick-tag { font-size:9.5px; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid rgba(0,70,102,0.15); background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .2s; font-family:var(--mono); white-space:nowrap; }
+        .quick-tag:hover { border-color:#2b9ab5; color:#2b9ab5; background:rgba(43,154,181,0.07); }
+        .quick-tag.active { border-color:#2b9ab5; color:#fff; background:#2b9ab5; }
+
+        /* Multiplier quick-buttons */
+        .mult-btns { display:flex; gap:4px; margin-top:4px; }
+        .mult-btn { flex:1; padding:4px 0; font-size:10px; font-weight:700; font-family:var(--mono); border:1.5px solid var(--border); border-radius:6px; background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .18s; white-space:nowrap; text-align:center; }
+        .mult-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+        .mult-btn:active { transform:scale(.95); }
+        .mult-btn.del { border-color:rgba(220,38,38,.2); color:var(--danger); }
+        .mult-btn.del:hover { background:#fef2f2; border-color:var(--danger); }
+
+        /* Rate preset grid */
+        .rate-presets { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; margin-top:5px; }
+        .rate-btn { padding:4px 2px; font-size:9px; font-weight:700; font-family:var(--mono); border:1px solid rgba(0,70,102,0.15); border-radius:4px; background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .15s; text-align:center; white-space:nowrap; overflow:hidden; }
+        .rate-btn:hover { border-color:#2b9ab5; color:#2b9ab5; background:rgba(43,154,181,0.07); }
+        .rate-btn:active { transform:scale(.94); }
+        .rate-btn.active { border-color:#2b9ab5; color:#fff; background:#2b9ab5; }
+
+        /* Balloon ratio panel */
+        .balloon-ratio-panel { margin-bottom:11px; }
+        .balloon-ratio-panel summary { font-size:10px; font-weight:700; color:var(--text-muted); cursor:pointer; padding:4px 0; letter-spacing:.06em; text-transform:uppercase; list-style:none; display:flex; align-items:center; gap:4px; }
+        .balloon-ratio-panel summary::-webkit-details-marker { display:none; }
+        .balloon-ratio-panel summary::before { content:'▶'; font-size:8px; transition:transform .2s; }
+        .balloon-ratio-panel[open] summary::before { transform:rotate(90deg); }
+        .balloon-ratio-grid { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; padding:10px; background:var(--bg-white); border-radius:10px; border:1px solid var(--border); }
+        .balloon-ratio-cell { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; min-width:52px; }
+        .balloon-ratio-label { font-size:9px; color:var(--text-muted); font-family:var(--mono); font-weight:700; }
+        .balloon-ratio-input { width:100%; border:1px solid var(--border); border-radius:5px; background:var(--bg); font-family:var(--mono); font-size:12px; font-weight:700; color:var(--accent2); text-align:center; outline:none; padding:3px 2px; transition:border-color .2s; }
+        .balloon-ratio-input:focus { border-color:var(--accent2); }
+        .balloon-ratio-note { font-size:9px; color:var(--text-muted); margin-top:5px; line-height:1.5; }
+
+        /* Balloon alert banner */
+        .balloon-alert { display:none; background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1.5px solid #f59e0b; border-radius:10px; padding:9px 13px; margin-bottom:10px; }
+        .balloon-alert-title { font-size:11px; font-weight:800; color:#92400e; margin-bottom:2px; display:flex; align-items:center; gap:5px; }
+        .balloon-alert-body { font-size:11px; color:#78350f; line-height:1.6; font-family:var(--mono); }
+        .btn-solve-balloon { margin-top:8px; width:100%; padding:7px 10px; border:none; border-radius:7px; background:linear-gradient(135deg,#d97706,#f59e0b); color:#fff; font-family:var(--font); font-size:11px; font-weight:700; cursor:pointer; transition:all .2s; letter-spacing:.01em; }
+        .btn-solve-balloon:hover { opacity:.88; transform:translateY(-1px); }
+        .btn-solve-balloon:active { transform:scale(.97); }
+        /* Overlimit warning */
+        .balloon-overlimit { display:none; background:#fef2f2; border:1.5px solid rgba(220,38,38,.25); border-radius:8px; padding:8px 12px; margin:4px 0; font-size:10.5px; line-height:1.65; color:#7f1d1d; font-family:var(--mono); }
+        .pct-label.overlimit { color:var(--danger) !important; font-weight:800; }
+
+        /* ===== CONTROL PANEL ZONES ===== */
+        .ctrl-divider { display:flex; align-items:center; gap:8px; margin:16px 0 10px; font-size:7.5px; font-weight:800; color:#00253e; letter-spacing:.14em; text-transform:uppercase; font-family:var(--mono); }
+        .ctrl-divider::before,.ctrl-divider::after { content:''; flex:1; height:1px; background:rgba(0,70,102,0.12); }
+        .ctrl-zone { border-radius:0 3px 3px 0; padding:13px 13px 5px; margin-bottom:13px; }
+        .ctrl-zone.zone-core { background:rgba(0,70,102,0.035); border-left:3px solid #004666; border-top:none; border-right:none; border-bottom:none; }
+        .ctrl-zone.zone-rate { background:rgba(43,154,181,0.04); border-left:3px solid #2b9ab5; border-top:none; border-right:none; border-bottom:none; }
+        .ctrl-zone.zone-sub  { background:rgba(216,170,0,0.05); border-left:3px solid #d8aa00; border-top:none; border-right:none; border-bottom:none; }
+        .ctrl-zone.zone-term { background:rgba(0,99,132,0.035); border-left:3px solid #006384; border-top:none; border-right:none; border-bottom:none; border-radius:0 3px 3px 0; padding:13px 13px 8px; margin-bottom:13px; }
+        /* Primary input emphasis */
+        .input-group.primary > input { font-size:15px; font-weight:800; border-color:rgba(37,99,235,0.22); background:#fafcff; }
+        .ctrl-zone.zone-core .input-group label,.ctrl-zone.zone-rate .input-group label { color:var(--text); font-size:11.5px; }
+        /* Mobile */
+        @media (max-width:768px) {
+            .single-grid { grid-template-columns:1fr; }
+            .rate-presets { grid-template-columns:repeat(4,1fr); }
+            .rate-btn { min-height:36px; font-size:10px; padding:6px 2px; }
+            .mult-btn { min-height:36px; font-size:11px; }
+            .quick-tag { padding:6px 12px; font-size:11px; }
+            .phase-grid input { padding:12px 9px; font-size:14px; }
+            .glass-card { padding:14px; }
+            .ctrl-zone { padding:11px 11px 4px; }
+            .ctrl-zone.zone-term { padding:11px 11px 8px; }
+        }
+
+        /* ===== DASHBOARD — Velocity Hero Card ===== */
+        .dashboard {
+            /* veloAccent('#00253e', 'rgba(43,154,181,0.055)', 0.58, 11) */
+            background:
+                linear-gradient(135deg, #00253e 58%, transparent 58%),
+                repeating-linear-gradient(135deg, transparent, transparent 11px, rgba(43,154,181,0.055) 11px, rgba(43,154,181,0.055) 12.5px),
+                #00253e;
+            color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 16px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,37,62,0.18);
+        }
+        .dashboard::before, .dashboard::after { display: none; }
+        .dash-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(115px,1fr)); gap:12px; position:relative; z-index:1; }
+        .dash-item { padding:0 0 0 10px; background:transparent; border-radius:0; border-left:2px solid #2b9ab5; }
+        .dash-item.dash-success { border-left-color: #95a844; }
+        .dash-label { font-size:7.5px; color:rgba(255,255,255,0.34); font-weight:600; text-transform:uppercase; letter-spacing:.1em; margin-bottom:3px; font-family:var(--mono); }
+        .dash-val { font-family:var(--mono); font-size:13px; font-weight:700; color:#ffffff; }
+        .dash-item.dash-success .dash-val { color: #95a844; }
+        .payment-summary { font-size:9.5px; line-height:1.9; border-top:1px solid rgba(255,255,255,0.06); padding:8px 0 0 0; margin-top:10px; color:rgba(255,255,255,0.34); font-family:var(--mono); position:relative; z-index:1; background:transparent; border-radius:0; }
+        .dash-footer { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding:8px 0 0 0; margin-top:10px; gap:20px; position:relative; z-index:1; }
+        .dash-footer .payment-summary { border-top:none; padding:0; margin:0; flex:1; }
+        .dash-disclaimer { font-size:8px; color:rgba(255,255,255,0.26); font-family:var(--mono); text-align:right; white-space:nowrap; line-height:1.7; }
+        @media (max-width:768px) { .dash-footer { flex-direction:column; gap:6px; } .dash-disclaimer { text-align:left; white-space:normal; } }
+
+        /* ===== TABLE ===== */
+        .table-container { overflow-x:auto; border-radius:11px; border:1px solid var(--border); max-height:560px; margin-bottom:14px; background:var(--bg-white); }
+        .sf-table { width:100%; border-collapse:collapse; font-size:12px; text-align:center; white-space:nowrap; }
+        .sf-table th {
+            padding:8px 12px;
+            /* veloAccent('#00253e', 'rgba(255,255,255,0.04)', 0.45, 6) */
+            background:
+                linear-gradient(135deg, #00253e 45%, transparent 45%),
+                repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(255,255,255,0.04) 6px, rgba(255,255,255,0.04) 7.5px),
+                #00253e;
+            color:rgba(255,255,255,0.72); border-bottom:none;
+            position:sticky; top:0; z-index:10; font-weight:700; font-size:8.5px;
+            text-transform:uppercase; letter-spacing:.1em; font-family:var(--mono);
+            -webkit-print-color-adjust:exact; print-color-adjust:exact;
+        }
+        .sf-table td { padding:7px 12px; border-bottom:1px solid rgba(0,70,102,0.04); color:var(--text-secondary); font-family:var(--mono); font-size:11px; }
+        .sf-table tr:nth-child(even) td { background:#f7f9fb; }
+        .sf-table tr:hover td { background:rgba(43,154,181,0.04); }
+        /* Right-align monetary columns */
+        #amortTable th:nth-child(n+2), #amortTable td:nth-child(n+2) { text-align:right; }
+        #amortTable td:nth-child(2) { color:#00253e; font-weight:700; }
+        #amortTable td:nth-child(5) { color:var(--text-muted); }
+        /* Phase subtotal rows */
+        #amortTable tr.phase-subtotal td { background:rgba(43,154,181,0.071); font-weight:800; border-top:1px solid rgba(43,154,181,0.21); border-bottom:1px solid rgba(43,154,181,0.21); color:#00253e; font-size:11px; letter-spacing:.02em; }
+        /* New action buttons */
+        .btn-mail { background:linear-gradient(135deg,#1d4ed8,#2563eb); color:white; padding:7px 13px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:7px; }
+        .btn-mail:hover { opacity:.88; transform:translateY(-1px); }
+        .btn-copy,.btn-img { background:var(--bg); color:var(--text-secondary); padding:7px 13px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:7px; border:1px solid var(--border); }
+        .btn-copy:hover,.btn-img:hover { background:var(--accent-light); color:var(--accent); border-color:rgba(37,99,235,.2); }
+        /* Table note (amortization card disclaimer) */
+        .table-note { font-size:7.5px; color:var(--text-muted); font-family:var(--mono); text-align:left; line-height:1.7; margin-top:5px; }
+        /* Print disclaimer */
+        .print-disclaimer { display:none; margin-top:16px; padding:8px 12px; border-top:1px solid #e2e8f0; font-size:9px; color:#94a3b8; text-align:center; line-height:1.7; letter-spacing:.01em; }
+        /* Mail modal */
+        #mail-modal { display:none; position:fixed; inset:0; z-index:9000; background:rgba(15,23,42,0.5); backdrop-filter:blur(4px); align-items:center; justify-content:center; }
+        #mail-modal.open { display:flex; }
+        .mail-modal-box { background:white; border-radius:16px; padding:28px; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.22); }
+        .mail-modal-title { font-size:14px; font-weight:800; color:var(--text); margin-bottom:5px; }
+        .mail-modal-desc { font-size:11px; color:var(--text-muted); margin-bottom:18px; line-height:1.6; }
+        .mail-modal-input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; outline:none; margin-bottom:14px; font-family:var(--font); transition:border-color .2s; }
+        .mail-modal-input:focus { border-color:var(--accent); }
+        .mail-modal-btns { display:flex; gap:8px; }
+
+        /* SF Table (factory/loancompare modules use this class too) */
+        .sf-table-container { overflow-x:auto; border-radius:11px; border:1px solid var(--border); max-height:560px; background:var(--bg-white); }
+
+        /* ===== COMFORT MODE ===== */
+        .comfort-trigger-btn { background:rgba(43,154,181,0.053); color:#00253e; border:1px solid rgba(43,154,181,0.27); padding:8px 20px; border-radius:8px; font-size:10.5px; cursor:pointer; font-weight:700; display:block; width:100%; text-align:center; font-family:var(--font); transition:all .3s; }
+        .comfort-trigger-btn:hover { background:rgba(43,154,181,0.1); border-color:#2b9ab5; }
+        /* Comfort mode quick-input buttons */
+        .c-mult-btns { display:flex; gap:10px; width:80%; margin:-8px auto 18px; }
+        .c-mult-btn { flex:1; padding:12px 4px; font-size:15px; font-weight:700; font-family:var(--mono); border:1.5px solid var(--border); border-radius:10px; background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .18s; text-align:center; }
+        .c-mult-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+        .c-mult-btn:active { transform:scale(.95); }
+        .c-mult-btn.c-del { border-color:rgba(220,38,38,.2); color:var(--danger); }
+        .c-mult-btn.c-del:hover { background:#fef2f2; border-color:var(--danger); }
+        .c-rate-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; width:80%; margin:0 auto 14px; }
+        .c-rate-btn { padding:11px 2px; font-size:13px; font-weight:700; font-family:var(--mono); border:1px solid rgba(0,70,102,0.15); border-radius:8px; background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .15s; text-align:center; }
+        .c-rate-btn:hover { border-color:#2b9ab5; color:#2b9ab5; background:rgba(43,154,181,0.07); }
+        .c-rate-btn:active { transform:scale(.94); }
+        .c-quick-terms { display:flex; flex-wrap:wrap; gap:8px; width:80%; margin:0 auto 16px; justify-content:center; }
+        .c-quick-term { font-size:14px; font-weight:700; padding:10px 16px; border-radius:8px; border:1.5px solid rgba(0,70,102,0.15); background:var(--bg-white); color:var(--text-secondary); cursor:pointer; transition:all .2s; font-family:var(--mono); white-space:nowrap; }
+        .c-quick-term:hover { border-color:#2b9ab5; color:#2b9ab5; background:rgba(43,154,181,0.07); }
+        .c-quick-term.selected { border-color:#2b9ab5; color:#fff; background:#2b9ab5; }
+        .comfort-overlay { position:fixed; inset:0; background-color:var(--bg); z-index:9999; display:flex; flex-direction:column; font-family:var(--font); }
+        .comfort-stepper { height:14vh; background:var(--bg-white); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; overflow-x:auto; gap:15px; flex-shrink:0; }
+        .step-item { display:flex; flex-direction:column; align-items:center; min-width:60px; opacity:.5; transition:.3s; }
+        .step-circle { width:28px; height:28px; border-radius:50%; background:var(--bg); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; border:2px solid var(--border); transition:.3s; }
+        .step-label { margin-top:6px; font-size:11px; color:var(--text-muted); font-weight:bold; white-space:nowrap; }
+        .step-data { font-size:10px; color:var(--success); font-weight:900; margin-top:2px; height:14px; opacity:0; transition:opacity .5s; white-space:nowrap; }
+        .step-line { width:20px; height:2px; background:var(--border); margin-top:-20px; flex-shrink:0; }
+        .step-item.active { opacity:1; transform:scale(1.05); }
+        .step-item.active .step-circle { background:var(--success); color:white; border-color:var(--success); box-shadow:0 0 12px rgba(5,150,105,0.28); }
+        .step-item.active .step-label { color:var(--success); }
+        .step-item.done { opacity:1; }
+        .step-item.done .step-circle { background:#047857; color:white; border-color:#047857; }
+        .step-item.done .step-label { color:#047857; }
+        .step-item.done .step-data { opacity:1; }
+        .step-line.done { background:#047857; }
+        .comfort-container { flex:1; display:flex; flex-direction:column; align-items:center; padding:40px 20px 20px; overflow-y:auto; }
+        .comfort-question-area { width:100%; max-width:600px; text-align:center; }
+        .c-title { font-size:1.8rem; font-weight:bold; color:var(--text); margin-bottom:20px; }
+        .c-subtitle { font-size:1rem; color:var(--text-secondary); margin-bottom:10px; }
+        .c-input { width:80%; padding:15px; font-size:2rem; text-align:center; border:2px solid var(--success); border-radius:10px; outline:none; margin-bottom:20px; background:var(--bg-white); color:var(--text); font-family:var(--mono); }
+        .c-input:focus { box-shadow:0 0 20px rgba(5,150,105,0.12); }
+        .c-btn-group { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        .c-btn-option { padding:20px 30px; font-size:1.2rem; border:1.5px solid var(--border); border-radius:10px; background:var(--bg-white); color:var(--text); cursor:pointer; flex:1; font-family:var(--font); transition:.2s; }
+        .c-btn-option:hover { border-color:var(--success); }
+        .c-btn-option.selected { background:var(--success); color:white; border-color:var(--success); }
+        .c-btn-submit { background:linear-gradient(135deg,#047857,var(--success)); color:white; padding:15px 40px; font-size:1.5rem; border:none; border-radius:50px; cursor:pointer; width:80%; max-width:300px; margin-top:10px; font-weight:900; font-family:var(--font); }
+        .c-btn-submit:active { transform:scale(.98); }
+        .comfort-footer { height:10vh; display:flex; justify-content:space-between; align-items:center; padding:0 20px; background:var(--bg-white); border-top:1px solid var(--border); flex-shrink:0; }
+        .c-btn { padding:10px 20px; border-radius:8px; border:none; font-size:1rem; cursor:pointer; font-family:var(--font); }
+        .c-btn-secondary { background:var(--bg); color:var(--text-secondary); border:1px solid var(--border); }
+        .c-btn-restart { background:transparent; border:2px solid var(--success); color:var(--success); padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer; }
+        .c-btn-danger { background:#fef2f2; color:var(--danger); border:1px solid rgba(220,38,38,0.18); }
+        .comfort-error-msg { color:var(--danger); font-size:1.2rem; margin-top:10px; height:20px; font-weight:bold; }
+
+        /* Comfort result card */
+        .dash-card-pro { background:linear-gradient(135deg,#0f1c2e,#162236 50%,#0f2340); border-radius:18px; padding:22px; color:white; box-shadow:0 8px 32px rgba(0,0,0,0.14); width:100%; text-align:left; position:relative; overflow:hidden; }
+        .dash-card-pro::before { content:''; position:absolute; top:-50px; right:-50px; width:150px; height:150px; background:rgba(37,99,235,0.08); border-radius:50%; }
+        .pro-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px; }
+        .pro-title { font-size:1.1rem; font-weight:bold; color:var(--accent2); }
+        .pro-tag { background:rgba(255,255,255,0.08); font-size:.8rem; padding:3px 10px; border-radius:12px; color:rgba(255,255,255,0.5); }
+        .toggle-container { margin-top:14px; display:flex; justify-content:flex-end; width:100%; }
+        .toggle-switch { display:flex; align-items:center; cursor:pointer; font-size:12px; color:var(--text-secondary); font-weight:bold; }
+        .toggle-switch input { display:none; }
+        .slider { width:34px; height:18px; background:var(--border); border-radius:20px; position:relative; margin-right:8px; transition:.3s; }
+        .slider:before { content:""; position:absolute; height:14px; width:14px; left:2px; bottom:2px; background:white; border-radius:50%; transition:.3s; }
+        input:checked+.slider { background:var(--success); }
+        input:checked+.slider:before { transform:translateX(16px); }
+        .pro-hero { text-align:center; margin-bottom:22px; padding:14px; background:rgba(0,0,0,0.18); border-radius:10px; }
+        .pro-hero-label { font-size:.85rem; color:rgba(37,99,235,0.8); margin-bottom:6px; }
+        .pro-hero-val { font-size:1.7rem; font-weight:900; font-family:var(--mono); color:white; line-height:1.4; white-space:pre-line; }
+        .pro-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .pro-item { background:rgba(255,255,255,0.04); padding:9px; border-radius:7px; border:1px solid rgba(255,255,255,0.07); }
+        .pro-item.wide { grid-column:span 2; border-left:3px solid var(--accent2); }
+        .pro-label { font-size:.75rem; color:rgba(255,255,255,0.4); }
+        .pro-val { font-size:1rem; font-weight:bold; font-family:var(--mono); color:white; margin-top:2px; }
+        .pro-footer { margin-top:18px; font-size:.75rem; color:rgba(255,255,255,0.3); text-align:center; }
+
+        /* ===== AUDIT MODULE SUPPORT ===== */
+        .audit-config { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:10px; }
+        .audit-zone { border:2px dashed var(--border); border-radius:12px; padding:32px 16px; text-align:center; cursor:pointer; transition:all .3s; position:relative; background:var(--bg-frost); }
+        .audit-zone:hover,.audit-zone.drag-over { border-color:var(--accent); background:var(--accent-light); }
+        .audit-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+        .audit-zone-icon { font-size:2rem; margin-bottom:8px; }
+        .audit-zone-text { font-size:13px; font-weight:700; color:var(--text); }
+        .audit-zone-hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
+        .audit-col-select { width:100%; padding:8px; border-radius:7px; border:1px solid var(--border); background:var(--bg-white); color:var(--text); font-size:12px; }
+        .audit-range-row { display:flex; gap:8px; align-items:center; }
+        .audit-range-row span { color:var(--text-muted); }
+        .bypass-check-wrap { display:flex; align-items:flex-start; gap:8px; margin-bottom:12px; padding:10px 14px; background:#fffbeb; border-radius:8px; border:1px solid rgba(217,119,6,0.18); }
+        .bypass-check-wrap label { font-size:12px; font-weight:700; color:#92400e; cursor:pointer; }
+        .audit-instructions { margin-bottom:14px; }
+        .audit-instructions summary { cursor:pointer; font-size:13px; font-weight:700; color:var(--text-secondary); padding:6px 0; }
+        .inst-body { padding:12px; background:var(--bg); border-radius:7px; font-size:12px; color:var(--text-secondary); line-height:1.8; }
+        .inst-step { margin-bottom:6px; }
+        .inst-tag { background:#f5f3ff; color:#5b21b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; }
+        .audit-conflict-alert { display:none; background:#fef2f2; border:1px solid rgba(220,38,38,0.18); border-radius:9px; padding:12px; margin-bottom:14px; }
+        .alert-title { font-weight:900; color:var(--danger); font-size:13px; margin-bottom:4px; }
+        .alert-body { font-size:12px; color:var(--text-secondary); }
+        .audit-two-col { display:grid; grid-template-columns:240px 1fr; gap:14px; }
+        .audit-info-sidebar h4 { color:#5b21b6; margin-bottom:10px; font-size:14px; }
+        .manual-entry-area { padding:14px; background:var(--bg); border-radius:10px; border:1px solid var(--border); }
+        .manual-phase-row { display:flex; gap:8px; align-items:center; margin-bottom:5px; font-size:12px; color:var(--text-secondary); }
+        .manual-phase-row input { flex:1; padding:8px; border-radius:6px; border:1px solid var(--border); background:var(--bg-white); color:var(--text); font-family:var(--mono); font-size:12px; }
+        .ocr-progress { display:none; padding:15px; text-align:center; }
+        .ocr-bar { height:5px; background:var(--bg); border-radius:3px; margin-top:8px; overflow:hidden; }
+        .ocr-bar-fill { height:100%; width:0; background:linear-gradient(90deg,#5b21b6,#7c3aed); border-radius:3px; transition:width .3s; }
+        .audit-preview { margin-bottom:15px; }
+        .audit-summary-bar { margin-bottom:20px; }
+
+        /* ===== MOBILE BOTTOM NAV ===== */
+        .mobile-nav { display:none; }
+        @media (max-width:768px) {
+            .topbar-nav { display:none; }
+            .mobile-nav {
+                display:flex; position:fixed; bottom:0; left:0; right:0;
+                background:#ffffff; backdrop-filter:none;
+                border-top:1px solid rgba(0,70,102,0.1);
+                z-index:90; padding:6px 0 max(8px, env(safe-area-inset-bottom));
+                justify-content:space-around;
+            }
+            .mobile-nav-btn {
+                display:flex; flex-direction:column; align-items:center; gap:3px;
+                background:none; border:none; cursor:pointer; padding:5px 10px;
+                border-radius:8px; font-family:var(--font); color:#a8adb3; flex:1;
+                transition:color .2s;
+            }
+            .mobile-nav-btn.active { color:#2b9ab5; }
+            .mobile-nav-btn .ico { font-size:18px; line-height:1; }
+            .mobile-nav-btn .lbl { font-size:9px; font-weight:700; letter-spacing:.02em; }
+            body { padding-bottom:68px; }
+            .main-container { padding:12px; }
+            .glass-card { padding:16px; }
+            .single-grid { grid-template-columns:1fr; }
+            .dashboard { padding:16px; }
+            .dash-row { grid-template-columns:1fr 1fr; gap:9px; }
+            .dash-val { font-size:.9rem; }
+        }
+        @media (max-width:480px) {
+            .dash-row { grid-template-columns:1fr; }
+            .audit-two-col { grid-template-columns:1fr; }
+        }
+        @media (min-width:769px) and (max-width:1024px) {
+            .single-grid { grid-template-columns:1fr; }
+            .audit-two-col { grid-template-columns:1fr; }
+        }
+
+        @media print {
+            @page { size:A4; margin:15mm 10mm 18mm; }
+            body { background:white !important; }
+            body::before,body::after { display:none !important; }
+            .topbar,.mobile-nav,.sidebar,.comfort-trigger-btn,.btn,.quick-tags { display:none !important; }
+            .main-container,#view-single,.content,#print-area { display:block !important; width:100% !important; }
+            .single-grid { display:block !important; }
+            .glass-card { background:white !important; border:none !important; box-shadow:none !important; padding:0 !important; }
+            .dashboard { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+            .table-container { overflow:visible !important; max-height:none !important; }
+            /* Ink-efficient table header for print */
+            .sf-table th { background:#f1f5f9 !important; color:#00253e !important; border-bottom:1.5px solid #00253e !important; -webkit-print-color-adjust:exact !important; }
+            .sf-table tr:nth-child(even) td { background:#f9fafb !important; -webkit-print-color-adjust:exact !important; }
+            /* Disclaimer visible on print */
+            .print-disclaimer { display:block !important; }
+            .dash-footer { display:flex !important; flex-direction:row !important; justify-content:space-between !important; align-items:flex-end !important; }
+            .dash-disclaimer { white-space:nowrap !important; text-align:right !important; }
+            #mail-modal { display:none !important; }
+        }
+
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:rgba(15,23,42,0.10); border-radius:3px; }
+    </style>
+</head>
+<body onload="initAll()">
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <!-- VeloTop: 純裝飾用對角速度線，position:absolute right:0 -->
+    <svg class="velo-top-svg" viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="53"  y1="52" x2="72"  y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.400" stroke-linecap="round"/>
+        <line x1="76"  y1="52" x2="95"  y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.362" stroke-linecap="round"/>
+        <line x1="99"  y1="52" x2="118" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.324" stroke-linecap="round"/>
+        <line x1="122" y1="52" x2="141" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.286" stroke-linecap="round"/>
+        <line x1="145" y1="52" x2="164" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.248" stroke-linecap="round"/>
+        <line x1="168" y1="52" x2="187" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.210" stroke-linecap="round"/>
+        <line x1="191" y1="52" x2="210" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.172" stroke-linecap="round"/>
+        <line x1="214" y1="52" x2="233" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.134" stroke-linecap="round"/>
+        <line x1="237" y1="52" x2="256" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.096" stroke-linecap="round"/>
+    </svg>
+    <div class="topbar-inner">
+        <div class="topbar-brand" onclick="switchView('single')">
+            <div class="brand-logo"><svg width="20" height="20" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="2.5" stroke="#00253e" stroke-width="1.6"/><line x1="7" y1="8.5" x2="17" y2="8.5" stroke="#00253e" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="14" x2="13" y2="14" stroke="#00253e" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="19.5" x2="10" y2="19.5" stroke="#00253e" stroke-width="1.6" stroke-linecap="round"/><path d="M19.5 12.5L22 16.5M22 12.5L19.5 16.5" stroke="#2b9ab5" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="brand-text">
+                <div class="brand-name"><em>BSD</em> 專屬應用系統</div>
+                <div class="brand-sub">BSD Sales Kit</div>
+            </div>
+        </div>
+
+        <nav class="topbar-nav">
+            <button class="nav-tab active" data-view="single" onclick="switchView('single')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8.5" y1="12" x2="10.5" y2="12"/><line x1="13.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="16" x2="10.5" y2="16"/><line x1="13.5" y1="15" x2="15.5" y2="17"/><line x1="15.5" y1="15" x2="13.5" y2="17"/></svg>
+                <span class="nav-tab-text"><span class="zt">精算核心</span><span class="en">Core Engine</span></span>
+            </button>
+            <button class="nav-tab" data-view="factory" onclick="switchView('factory')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>
+                <span class="nav-tab-text"><span class="zt">葵花寶典工廠</span><span class="en">Matrix Factory</span></span>
+            </button>
+            <button class="nav-tab" data-view="loancompare" onclick="switchView('loancompare')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="8" height="14" rx="1.5"/><rect x="14" y="9" width="8" height="10" rx="1.5"/></svg>
+                <span class="nav-tab-text"><span class="zt">雙方案比較</span><span class="en">Loan Compare</span></span>
+            </button>
+        </nav>
+
+        <div class="topbar-end">
+            <div class="pro-link" onclick="enterPro(event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Pro</div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== MOBILE BOTTOM NAV ===== -->
+<nav class="mobile-nav">
+    <button class="mobile-nav-btn active" data-view="single" onclick="switchView('single')">
+        <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8.5" y1="12" x2="10.5" y2="12"/><line x1="13.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="16" x2="10.5" y2="16"/><line x1="13.5" y1="15" x2="15.5" y2="17"/><line x1="15.5" y1="15" x2="13.5" y2="17"/></svg></span><span class="lbl">精算核心</span>
+    </button>
+    <button class="mobile-nav-btn" data-view="factory" onclick="switchView('factory')">
+        <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg></span><span class="lbl">工廠</span>
+    </button>
+    <button class="mobile-nav-btn" data-view="loancompare" onclick="switchView('loancompare')">
+        <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="8" height="14" rx="1.5"/><rect x="14" y="9" width="8" height="10" rx="1.5"/></svg></span><span class="lbl">比較</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="ComfortMode.init()">
+        <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl">舒適</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="enterPro(event)">
+        <span class="ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="lbl">Pro</span>
+    </button>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<div class="main-container">
+
+    <!-- VIEW: Core Engine -->
+    <div id="view-single" class="view-section active">
+        <div class="single-grid">
+
+            <div class="sidebar">
+                <div class="glass-card">
+                    <div class="section-title">
+                        <div class="title-block">
+                            <span class="title-zh">BSD 專屬精算核心</span>
+                            <span class="title-en">Core Engine</span>
+                        </div>
+                        <span class="author-tag">今晚沒喝夠的小賈哥</span>
+                    </div>
+
+                    <button class="comfort-trigger-btn" onclick="ComfortMode.init()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> 眼睛超舒服模式 &nbsp;·&nbsp; Comfort Mode
+                    </button>
+                    <div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:12px 0 14px;opacity:.12"></div>
+
+                    <!-- ── ZONE: 核心參數 ── -->
+                    <div class="ctrl-divider">核心參數 · Core</div>
+                    <div class="ctrl-zone zone-core">
+                        <div class="input-group primary">
+                            <label><span class="zt">建議售價</span>&nbsp;<span class="en">MSRP</span></label>
+                            <input type="number" id="MSRP" placeholder="車輛原始售價" oninput="updateUI()">
+                            <div class="mult-btns">
+                                <button class="mult-btn" onclick="multField('MSRP',10000)">×10,000</button>
+                                <button class="mult-btn" onclick="multField('MSRP',1000)">×1,000</button>
+                                <button class="mult-btn" onclick="multField('MSRP',100)">×100</button>
+                                <button class="mult-btn del" onclick="delDigit('MSRP')">←</button>
+                            </div>
+                        </div>
+                        <div class="input-group primary">
+                            <label><span class="zt">分期本金</span><span class="req">*</span>&nbsp;<span class="en">Principal</span></label>
+                            <input type="number" id="B20" placeholder="請輸入分期本金" oninput="updateUI()">
+                            <div class="mult-btns">
+                                <button class="mult-btn" onclick="multField('B20',10000)">×10,000</button>
+                                <button class="mult-btn" onclick="multField('B20',1000)">×1,000</button>
+                                <button class="mult-btn" onclick="multField('B20',100)">×100</button>
+                                <button class="mult-btn del" onclick="delDigit('B20')">←</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── ZONE: 利率設定 ── -->
+                    <div class="ctrl-divider">利率設定 · Rate</div>
+                    <div class="ctrl-zone zone-rate">
+                        <div class="input-group">
+                            <label><span class="zt">牌價利率 %</span><span class="req">*</span>&nbsp;<span class="en">Charge Rate</span></label>
+                            <input type="number" id="B4" step="0.01" placeholder="請輸入牌價利率" oninput="syncRate()">
+                            <div class="rate-presets" id="rate-presets-B4">
+                                <button class="rate-btn" onclick="setRate('B4',0)">0%</button>
+                                <button class="rate-btn" onclick="setRate('B4',0.99)">0.99%</button>
+                                <button class="rate-btn" onclick="setRate('B4',1.68)">1.68%</button>
+                                <button class="rate-btn" onclick="setRate('B4',1.88)">1.88%</button>
+                                <button class="rate-btn" onclick="setRate('B4',2.5)">2.5%</button>
+                                <button class="rate-btn" onclick="setRate('B4',2.68)">2.68%</button>
+                                <button class="rate-btn" onclick="setRate('B4',2.88)">2.88%</button>
+                                <button class="rate-btn" onclick="setRate('B4',2.99)">2.99%</button>
+                                <button class="rate-btn" onclick="setRate('B4',3.00)">3.00%</button>
+                                <button class="rate-btn" onclick="setRate('B4',3.3)">3.3%</button>
+                                <button class="rate-btn" onclick="setRate('B4',3.5)">3.5%</button>
+                                <button class="rate-btn" onclick="setRate('B4',3.75)">3.75%</button>
+                                <button class="rate-btn" onclick="setRate('B4',3.99)">3.99%</button>
+                                <button class="rate-btn" onclick="setRate('B4',4.13)">4.13%</button>
+                                <button class="rate-btn" onclick="setRate('B4',4.23)">4.23%</button>
+                                <button class="rate-btn" onclick="setRate('B4',4.49)">4.49%</button>
+                                <button class="rate-btn" onclick="setRate('B4',4.75)">4.75%</button>
+                                <button class="rate-btn" onclick="setRate('B4',4.99)">4.99%</button>
+                                <button class="rate-btn" onclick="setRate('B4',5.25)">5.25%</button>
+                                <button class="rate-btn" onclick="setRate('B4',5.49)">5.49%</button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="check-wrap">
+                                <label style="margin:0"><span class="zt">客戶利率 %</span>&nbsp;<span class="en">Cust. Rate</span></label>
+                                <input type="checkbox" id="rateLock" onchange="updateUI()">
+                                <span class="check-label">鎖定 Lock</span>
+                            </div>
+                            <input type="number" id="CRate" step="0.0001" placeholder="勾選後以此推算月付款">
+                            <div class="rate-presets" id="rate-presets-CRate">
+                                <button class="rate-btn" onclick="setRate('CRate',0)">0%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',0.99)">0.99%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',1.68)">1.68%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',1.88)">1.88%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',2.5)">2.5%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',2.68)">2.68%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',2.88)">2.88%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',2.99)">2.99%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',3.00)">3.00%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',3.3)">3.3%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',3.5)">3.5%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',3.75)">3.75%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',3.99)">3.99%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',4.13)">4.13%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',4.23)">4.23%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',4.49)">4.49%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',4.75)">4.75%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',4.99)">4.99%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',5.25)">5.25%</button>
+                                <button class="rate-btn" onclick="setRate('CRate',5.49)">5.49%</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── ZONE: 補貼追蹤 ── -->
+                    <div class="ctrl-divider">補貼追蹤 · Subsidy</div>
+                    <div class="ctrl-zone zone-sub">
+                        <div class="res-box" style="margin:0 0 10px;">
+                            <div id="res-title">補貼 / 退佣預估 · Subsidy Est.</div>
+                            <div class="res-val" id="res-val">$ 0</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+                            <div class="input-group">
+                                <div class="check-wrap">
+                                    <label style="margin:0"><span class="zt">總代理補貼</span></label>
+                                    <input type="checkbox" id="agentLock" onchange="updateUI()">
+                                    <span class="check-label">鎖定</span>
+                                </div>
+                                <input type="number" id="SubAgent" value="0" oninput="updateUI()">
+                            </div>
+                            <div class="input-group">
+                                <div class="check-wrap">
+                                    <label style="margin:0"><span class="zt">經銷商補貼</span></label>
+                                    <input type="checkbox" id="dealerLock" onchange="updateUI()">
+                                    <span class="check-label">鎖定</span>
+                                </div>
+                                <input type="number" id="SubDealer" value="0" oninput="updateUI()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── ZONE: 期數設定 ── -->
+                    <div class="ctrl-divider">期數設定 · Terms</div>
+                    <div class="ctrl-zone zone-term">
+                        <details class="balloon-ratio-panel" id="balloon-ratio-panel" style="margin-bottom:10px;">
+                            <summary>🎯 尾款比例上限設定 · Balloon Cap Ratios</summary>
+                            <div class="balloon-ratio-grid" id="balloon-ratio-grid">
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">12期</div><input class="balloon-ratio-input" id="br-12" type="number" value="75" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">24期</div><input class="balloon-ratio-input" id="br-24" type="number" value="70" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">36期</div><input class="balloon-ratio-input" id="br-36" type="number" value="65" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">48期</div><input class="balloon-ratio-input" id="br-48" type="number" value="55" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">60期</div><input class="balloon-ratio-input" id="br-60" type="number" value="50" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">72期</div><input class="balloon-ratio-input" id="br-72" type="number" value="45" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                                <div class="balloon-ratio-cell"><div class="balloon-ratio-label">84期</div><input class="balloon-ratio-input" id="br-84" type="number" value="40" min="0" max="100" oninput="updateUI()"><div class="balloon-ratio-label">%</div></div>
+                            </div>
+                            <div class="balloon-ratio-note">預設值：12→75%、24→70%、36→65%、48→55%、60→50%、72→45%、84→40%<br>計算公式：MSRP × 對應比例 = 尾款上限</div>
+                        </details>
+
+                        <div style="font-size:9.5px;font-weight:800;color:var(--text-muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;">⚡ 快速設定期數 · Quick Terms</div>
+                        <div class="quick-tags" id="quick-tags">
+                            <span class="quick-tag" onclick="applyTag(this,[24])">均攤 24</span>
+                            <span class="quick-tag" onclick="applyTag(this,[36])">均攤 36</span>
+                            <span class="quick-tag" onclick="applyTag(this,[48])">均攤 48</span>
+                            <span class="quick-tag" onclick="applyTag(this,[60])">均攤 60</span>
+                            <span class="quick-tag" onclick="applyTag(this,[72])">均攤 72</span>
+                            <span class="quick-tag" onclick="applyTag(this,[84])">均攤 84</span>
+                            <span class="quick-tag" onclick="applyTag(this,[96])">均攤 96</span>
+                            <span class="quick-tag" onclick="applyTag(this,[100])">均攤 100</span>
+                            <span class="quick-tag" onclick="applyTag(this,[47,1])">尾款 47+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[59,1])">尾款 59+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[71,1])">尾款 71+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[83,1])">尾款 83+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,47,1])">階段 12+47+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,12,35,1])">階段 12+12+35+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,59,1])">階段 12+59+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,12,47,1])">階段 12+12+47+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,24,35,1])">階段 12+24+35+1</span>
+                            <span class="quick-tag" onclick="applyTag(this,[12,71,1])">階段 12+71+1</span>
+                        </div>
+
+                        <div class="balloon-alert" id="balloon-alert">
+                            <div class="balloon-alert-title">⚠️ 尾款上限提醒 · Balloon Cap Notice</div>
+                            <div class="balloon-alert-body" id="balloon-alert-body">—</div>
+                            <button class="btn-solve-balloon" onclick="solveBalloon()">⚡ 我要試算尾款 · Solve Balloon Payment</button>
+                        </div>
+                        <!-- overlimit notice: JS moves this after the balloon phase row -->
+                        <div class="balloon-overlimit" id="balloon-overlimit"></div>
+
+                        <div class="phase-header">
+                            <span>期數<span class="req">*</span></span>
+                            <span>月付款 · Monthly Pmt</span>
+                            <span style="text-align:right">% MSRP</span>
+                        </div>
+                        <div id="phases-container">
+                            <div class="phase-grid"><input type="number" class="p-m" value="59" placeholder="期"><input type="number" class="p-v" placeholder="金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                            <div class="phase-grid"><input type="number" class="p-m" value="1"  placeholder="期"><input type="number" class="p-v" placeholder="金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                            <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                            <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                            <div class="phase-grid"><input type="number" class="p-m" placeholder="期"><input type="number" class="p-v" placeholder="金額" oninput="updateUI()"><span class="pct-label">--%</span></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:4px;">
+                        <button class="btn btn-calc" onclick="smartSolve()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8.5" y1="12" x2="10.5" y2="12"/><line x1="13.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="16" x2="10.5" y2="16"/><line x1="13.5" y1="15" x2="15.5" y2="17"/><line x1="15.5" y1="15" x2="13.5" y2="17"/></svg> 執行智慧運算</button>
+                        <button class="btn btn-reset" onclick="initApp()">清除所有欄位 · Reset All</button>
+                        <button class="btn-compare" onclick="launchBalloonCompare()">📊 執行均攤／尾款方案比較</button>
+                        <div class="compare-hint" id="compare-hint">⚠ 需偵測到尾款方案（最後一期為 1 期），方可執行此比較。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="print-area">
+                <div class="dashboard">
+                    <!-- VeloHero: 純裝飾用對角斜面色塊 + 速度箭頭 -->
+                    <svg style="position:absolute;top:0;right:0;width:420px;height:100%;pointer-events:none;" viewBox="0 0 420 116" preserveAspectRatio="none" aria-hidden="true">
+                        <path d="M151,-8 L197,-8 L103,124 L57,124 Z" fill="#2b9ab5" opacity="0.042"/>
+                        <path d="M207,-8 L253,-8 L159,124 L113,124 Z" fill="#2b9ab5" opacity="0.061"/>
+                        <path d="M263,-8 L309,-8 L215,124 L169,124 Z" fill="#2b9ab5" opacity="0.080"/>
+                        <path d="M319,-8 L365,-8 L271,124 L225,124 Z" fill="#2b9ab5" opacity="0.099"/>
+                        <path d="M218,36 l16,22 l-16,22" stroke="#2b9ab5" stroke-width="2.4" fill="none" opacity="0.48" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M242,36 l16,22 l-16,22" stroke="#2b9ab5" stroke-width="2.4" fill="none" opacity="0.38" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M266,36 l16,22 l-16,22" stroke="#c6dfe7" stroke-width="2.4" fill="none" opacity="0.28" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M290,36 l16,22 l-16,22" stroke="#c6dfe7" stroke-width="2.4" fill="none" opacity="0.18" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div style="position:relative;z-index:1;">
+                    <div class="dash-row">
+                        <div class="dash-item" id="msrp-dash" style="display:none">
+                            <div class="dash-label">MSRP 售價</div>
+                            <div class="dash-val" id="d-msrp">0</div>
+                        </div>
+                        <div class="dash-item">
+                            <div class="dash-label">Principal 本金</div>
+                            <div class="dash-val" id="d-pv">0</div>
+                        </div>
+                        <div class="dash-item">
+                            <div class="dash-label">IRR 客戶利率</div>
+                            <div class="dash-val" id="d-crate">--%</div>
+                        </div>
+                        <div class="dash-item">
+                            <div class="dash-label">Terms 期數</div>
+                            <div class="dash-val" id="d-terms">0</div>
+                        </div>
+                        <div class="dash-item">
+                            <div class="dash-label">Total Pmt 總付款</div>
+                            <div class="dash-val" id="d-total-pmt">0</div>
+                        </div>
+                    </div>
+                    <div class="dash-footer">
+                        <div class="payment-summary" id="d-summary">請輸入參數並點擊計算 · Enter parameters and calculate</div>
+                        <div class="dash-disclaimer">本試算結果僅供參考，本公司保留最終審核及解釋之權利。<br>For reference only. The company reserves the right of final review and interpretation.</div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top:0">
+                    <div class="section-title">
+                        <div class="title-block">
+                            <span class="title-zh">本息攤還表</span>
+                            <span class="title-en">Amortization Schedule</span>
+                            <div class="table-note">本表僅供參考，實際攤還金額分配及結清金額需以 VWFS 系統資料為準<br>For reference only. Actual settlement amounts subject to VWFS system records.</div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn btn-excel" onclick="exportSingleExcel()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg> Excel</button>
+                            <button class="btn btn-pdf"   onclick="exportSinglePDF()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg> PDF</button>
+                            <button class="btn btn-export" onclick="window.print()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> 列印</button>
+                            <button class="btn btn-copy" id="btn-copy-core" onclick="copyCoreSummary()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 複製</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="amortTable" class="sf-table">
+                            <thead><tr>
+                                <th>No. 期數</th>
+                                <th>Pmt 月付款</th>
+                                <th>Int. 利息</th>
+                                <th>Prin. 本金</th>
+                                <th>Bal. 餘額</th>
+                            </tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODULE VIEWS -->
+    <div id="view-factory" class="view-section">
+        <div id="factory-mount-point">
+            <div class="glass-card" style="text-align:center;padding:60px 40px">
+                <div style="font-size:2rem;margin-bottom:12px">✨</div>
+                <p style="color:var(--text-secondary)">載入葵花寶典工廠 · Loading Matrix Factory…</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-loancompare" class="view-section">
+        <div id="loancompare-mount-point">
+            <div class="glass-card" style="text-align:center;padding:60px 40px">
+                <div style="font-size:2rem;margin-bottom:12px">📊</div>
+                <p style="color:var(--text-secondary)">載入雙方案比較 · Loading Loan Comparator…</p>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /main-container -->
+
+<!-- ===== MAIL MODAL ===== -->
+<div id="mail-modal">
+    <div class="mail-modal-box">
+        <div class="mail-modal-title">✉️ 寄送試算報告 · Send Report</div>
+        <div class="mail-modal-desc">PDF 報告將自動下載至您的裝置，同時開啟郵件程式並預填摘要內容。<br>Your PDF will download automatically, and your email client will open with the summary pre-filled.</div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:5px">收件人 Recipient</label>
+        <input id="mail-to" class="mail-modal-input" type="email" placeholder="example@vwfs.com.tw">
+        <div class="mail-modal-btns">
+            <button onclick="doSendMail()" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">確認寄送 Send</button>
+            <button onclick="hideMailModal()" style="padding:10px 18px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-muted);cursor:pointer;font-family:var(--font)">取消 Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== COMFORT OVERLAY ===== -->
+<div id="comfort-overlay" class="comfort-overlay" style="display:none">
+    <div class="comfort-stepper" id="comfort-stepper"></div>
+    <div class="comfort-container">
+        <div id="comfort-question-area" class="comfort-question-area"></div>
+        <div id="comfort-error-msg" class="comfort-error-msg"></div>
+    </div>
+    <div class="comfort-footer">
+        <button class="c-btn c-btn-secondary" onclick="ComfortMode.prevStep()">上一步 Back</button>
+        <button class="c-btn c-btn-danger"    onclick="ComfortMode.exit()">離開模式 Exit</button>
+    </div>
+</div>
+
+<script>
+    /* ---- BSDCore shortcuts ---- */
+    function roundTo2(v){return BSDCore.roundTo2(v)}
+    function calculateActualS(B20,B4_m,flows){return BSDCore.calculateActualS(B20,B4_m,flows)}
+    function solveIRR(p0,flows){return BSDCore.solveIRR(p0,flows)}
+
+    /* ---- Boot ---- */
+    function initAll(){
+        initApp();
+        loadSubModule('bsd-factory.js',   function(){ if(typeof initFactory==='function')     initFactory(); });
+        loadSubModule('bsd-loancompare.js',function(){
+            if(typeof initLoanCompare==='function') initLoanCompare();
+            if(window.location.hash==='#loancompare') switchView('loancompare');
+        });
+    }
+    function loadSubModule(src,cb){
+        var s=document.createElement('script');
+        s.src=src; s.onload=cb;
+        s.onerror=function(){ console.warn('子模組載入失敗：'+src); };
+        document.head.appendChild(s);
+    }
+
+    /* ---- View switcher ---- */
+    function switchView(v){
+        document.querySelectorAll('.view-section').forEach(function(el){ el.classList.remove('active'); });
+        document.getElementById('view-'+v).classList.add('active');
+        document.querySelectorAll('.nav-tab[data-view]').forEach(function(el){ el.classList.remove('active'); });
+        var tab=document.querySelector('.nav-tab[data-view="'+v+'"]');
+        if(tab) tab.classList.add('active');
+        document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(function(el){ el.classList.remove('active'); });
+        var mBtn=document.querySelector('.mobile-nav-btn[data-view="'+v+'"]');
+        if(mBtn) mBtn.classList.add('active');
+        window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    /* ---- Pro Gateway ---- */
+    async function enterPro(e){
+        if(e && e.preventDefault) e.preventDefault();
+        var pw=prompt('請輸入專業版密碼 · Enter Pro Password：');
+        if(!pw) return;
+        var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+        var hash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+        if(hash==='b3f6d3235c9f99eedb6e3b099e134c6e85afc111eec2210f14928668e76e27bd'){
+            sessionStorage.setItem('bsd_pro_auth','1');
+            window.location.href='pro/index.html?a=1';
+        }else{
+            alert('密碼錯誤，請重新確認。\nIncorrect password.');
+        }
+    }
+
+    /* ---- Rate Presets ---- */
+    function setRate(id,val){
+        var el=document.getElementById(id);
+        el.value=val;
+        /* Highlight active button in the matching preset group */
+        var grid=document.getElementById('rate-presets-'+id);
+        if(grid) grid.querySelectorAll('.rate-btn').forEach(function(b){
+            b.classList.toggle('active', parseFloat(b.textContent)===val);
+        });
+        if(id==='B4') syncRate(); else updateUI();
+    }
+
+    /* ---- Multiplier Buttons ---- */
+    function multField(id,factor){
+        var el=document.getElementById(id);
+        var v=parseFloat(el.value)||0;
+        if(v!==0) el.value=Math.round(v*factor);
+        updateUI();
+    }
+    function delDigit(id){
+        var el=document.getElementById(id);
+        var s=String(el.value||'');
+        el.value=s.length>1?s.slice(0,-1):'';
+        updateUI();
+    }
+
+    /* ---- Balloon Cap Helpers ---- */
+    var _skipBalloonCap=false;
+    function solveBalloon(){
+        /* Call smartSolve without auto-injecting the cap, so the balloon phase
+           can be the unknown the solver calculates */
+        _skipBalloonCap=true;
+        smartSolve();
+        _skipBalloonCap=false;
+    }
+    function getBalloonRatios(){
+        var keys=[12,24,36,48,60,72,84];
+        var r={};
+        keys.forEach(function(k){
+            var el=document.getElementById('br-'+k);
+            r[k]=el?parseFloat(el.value)||0:0;
+        });
+        return r;
+    }
+    function detectBalloon(){
+        var msrp=parseFloat(document.getElementById('MSRP').value)||0;
+        if(msrp<=0) return null;
+        var pMs=Array.from(document.querySelectorAll('.p-m'));
+        var active=pMs.map(function(el,i){return{months:parseInt(el.value)||0,idx:i};}).filter(function(p){return p.months>0;});
+        if(active.length<2) return null;
+        var last=active[active.length-1];
+        if(last.months!==1) return null;
+        var totalTerms=active.reduce(function(s,p){return s+p.months;},0);
+        var ratios=getBalloonRatios();
+        var keys=Object.keys(ratios).map(Number).sort(function(a,b){return a-b;});
+        var ratio=ratios[totalTerms];
+        if(ratio===undefined){
+            var below=keys.filter(function(k){return k<=totalTerms;});
+            ratio=below.length>0?ratios[below[below.length-1]]:ratios[keys[0]];
+        }
+        var cap=Math.round(msrp*(ratio||0)/100);
+        return{lastIdx:last.idx,totalTerms:totalTerms,ratio:ratio,cap:cap};
+    }
+
+    /* ---- Quick Tags ---- */
+    function applyTag(el,periods){
+        document.querySelectorAll('.quick-tag').forEach(function(t){t.classList.remove('active')});
+        el.classList.add('active');
+        var pms=document.querySelectorAll('.p-m'), pvs=document.querySelectorAll('.p-v');
+        for(var i=0;i<pms.length;i++){pms[i].value='';pvs[i].value='';}
+        for(var i=0;i<periods.length&&i<pms.length;i++){pms[i].value=periods[i];}
+        updateUI();
+    }
+
+    /* ---- App init / reset ---- */
+    function initApp(){
+        document.querySelectorAll('#view-single input[type="checkbox"]').forEach(function(c){c.checked=false});
+        document.querySelectorAll('#view-single input:not([type="checkbox"])').forEach(function(i){i.value=''});
+        document.getElementById('SubAgent').value=0;
+        document.getElementById('SubDealer').value=0;
+        var pms=document.querySelectorAll('.p-m');
+        pms[0].value=59; pms[1].value=1;
+        document.getElementById('res-val').innerText='$ 0';
+        document.querySelectorAll('.quick-tag').forEach(function(t){t.classList.remove('active')});
+        /* Restore default balloon ratios (reset clears all inputs) */
+        var brDef={12:75,24:70,36:65,48:55,60:50,72:45,84:40};
+        Object.keys(brDef).forEach(function(k){
+            var el=document.getElementById('br-'+k);
+            if(el) el.value=brDef[k];
+        });
+        updateUI();
+    }
+
+    function syncRate(){
+        if(!document.getElementById('rateLock').checked)
+            document.getElementById('CRate').value=document.getElementById('B4').value;
+        updateUI();
+    }
+
+    function updateUI(){
+        var msrp=parseFloat(document.getElementById('MSRP').value)||0;
+        var pv=parseFloat(document.getElementById('B20').value)||0;
+        var rLock=document.getElementById('rateLock').checked;
+        var aLock=document.getElementById('agentLock').checked;
+        var dLock=document.getElementById('dealerLock').checked;
+        document.getElementById('CRate').style.background=rLock?'#fef2f2':'';
+        document.getElementById('CRate').style.borderColor=rLock?'#fca5a5':'';
+        document.getElementById('SubAgent').style.background=aLock?'#fef2f2':'';
+        document.getElementById('SubAgent').style.borderColor=aLock?'#fca5a5':'';
+        document.getElementById('SubDealer').style.background=dLock?'#fef2f2':'';
+        document.getElementById('SubDealer').style.borderColor=dLock?'#fca5a5':'';
+        document.getElementById('d-pv').innerText='$ '+pv.toLocaleString();
+        document.getElementById('msrp-dash').style.display=msrp>0?'block':'none';
+        document.getElementById('d-msrp').innerText='$ '+msrp.toLocaleString();
+
+        /* Balloon cap detection */
+        var balloon=detectBalloon();
+        var alertEl=document.getElementById('balloon-alert');
+        var alertBody=document.getElementById('balloon-alert-body');
+        var pVs=document.querySelectorAll('.p-v'), labels=document.querySelectorAll('.pct-label');
+
+        /* Reset balloon hints on all fields first */
+        pVs.forEach(function(v){
+            v.placeholder='金額';
+            v.style.color='';
+        });
+
+        if(balloon){
+            /* Show alert */
+            alertEl.style.display='block';
+            alertBody.innerHTML='偵測到尾款方案（共 <strong>'+balloon.totalTerms+'</strong> 期）<br>依 MSRP × <strong>'+balloon.ratio+'%</strong> = 尾款上限 <strong>$'+balloon.cap.toLocaleString()+'</strong><br><span style="font-size:10px;opacity:.7">末段月付款欄位空白時，將以上限值代入計算</span>';
+            /* Set placeholder on last balloon phase p-v */
+            var lastPv=pVs[balloon.lastIdx];
+            if(lastPv){
+                lastPv.placeholder='上限 $'+balloon.cap.toLocaleString();
+                lastPv.style.color=lastPv.value?'':''; /* value present → normal text; empty → placeholder handles display */
+            }
+        }else{
+            alertEl.style.display='none';
+            alertBody.innerHTML='—';
+        }
+
+        var overlimitEl=document.getElementById('balloon-overlimit');
+        var isOverlimit=false;
+        pVs.forEach(function(v,i){
+            var val=parseFloat(v.value)||0;
+            if(val>0){
+                var pct=(msrp>0)?(val/msrp*100):0;
+                labels[i].innerText=pct.toFixed(2)+'%';
+                /* Overlimit check on the balloon phase */
+                if(balloon&&i===balloon.lastIdx&&val>balloon.cap){
+                    labels[i].classList.add('overlimit');
+                    isOverlimit=true;
+                }else{
+                    labels[i].classList.remove('overlimit');
+                    labels[i].style.color='';
+                }
+            }else if(balloon&&i===balloon.lastIdx){
+                labels[i].innerText='≤'+balloon.ratio+'%';
+                labels[i].style.color='#f59e0b';
+                labels[i].classList.remove('overlimit');
+            }else{
+                labels[i].innerText='--';
+                labels[i].style.color='';
+                labels[i].classList.remove('overlimit');
+            }
+        });
+        /* Show/hide overlimit message — insert after the balloon phase row */
+        if(overlimitEl){
+            if(balloon&&isOverlimit){
+                overlimitEl.innerHTML='貼心提醒：請留意 <strong>'+balloon.totalTerms+'</strong> 期尾款上限為 <strong>'+balloon.ratio+'%</strong>，尾款應以不超過 <strong>$'+balloon.cap.toLocaleString()+'</strong> 為原則，該提醒不影響運算進行。<br><span style="font-size:9.5px;opacity:.75">Friendly note: balloon cap for '+balloon.totalTerms+'-period plan is '+balloon.ratio+'% of MSRP ($'+balloon.cap.toLocaleString()+'). This notice does not affect calculation.</span>';
+                /* Move overlimit notice right after the balloon phase-grid row */
+                var phaseRows=document.querySelectorAll('#phases-container .phase-grid');
+                if(phaseRows[balloon.lastIdx]){
+                    phaseRows[balloon.lastIdx].after(overlimitEl);
+                }
+                overlimitEl.style.display='block';
+            }else{
+                overlimitEl.style.display='none';
+            }
+        }
+    }
+
+    /* ---- Smart Solve ---- */
+    function smartSolve(){
+        var B20=parseFloat(document.getElementById('B20').value);
+        var B4_v=parseFloat(document.getElementById('B4').value);
+        if(!B20||!B4_v) return alert('本金跟牌價利率要填喔！\nPlease enter Principal and Charge Rate.');
+        var rLock=document.getElementById('rateLock').checked;
+        var aLock=document.getElementById('agentLock').checked;
+        var dLock=document.getElementById('dealerLock').checked;
+        var pMs=Array.from(document.querySelectorAll('.p-m')).map(function(i){return parseInt(i.value)||0});
+        var pVsInputs=document.querySelectorAll('.p-v');
+        var balloon=detectBalloon();
+        var phases=[];
+        for(var i=0;i<pMs.length;i++){
+            if(pMs[i]>0){
+                var phaseVal=pVsInputs[i].value?parseFloat(pVsInputs[i].value):null;
+                /* If this is the balloon's last phase and field is empty, inject cap */
+                if(balloon&&i===balloon.lastIdx&&phaseVal===null) phaseVal=balloon.cap;
+                phases.push({months:pMs[i],value:phaseVal});
+            }
+        }
+        var result=BSDCore.smartSolveCore({
+            B20:B20,B4_v:B4_v,phases:phases,
+            rateLock:rLock,agentLock:aLock,dealerLock:dLock,
+            custRate:parseFloat(document.getElementById('CRate').value)||B4_v,
+            subAgent:parseFloat(document.getElementById('SubAgent').value)||0,
+            subDealer:parseFloat(document.getElementById('SubDealer').value)||0
+        });
+        var phaseIdx=0;
+        for(var i=0;i<pMs.length;i++){
+            if(pMs[i]>0&&phaseIdx<result.phases.length){pVsInputs[i].value=result.phases[phaseIdx].value;phaseIdx++;}
+        }
+        document.getElementById('d-crate').innerText=BSDCore.formatRate(result.customerRate,4)+'%';
+        if(!rLock) document.getElementById('CRate').value=BSDCore.formatRate(result.customerRate,4);
+        document.getElementById('res-val').innerText='$ '+Math.abs(result.totalS).toLocaleString();
+        document.getElementById('res-val').style.color=result.totalS<0?'#dc2626':'#059669';
+        if(!dLock&&!aLock){
+            document.getElementById('SubAgent').value=0;
+            document.getElementById('SubDealer').value=result.totalS<0?Math.abs(result.totalS):0;
+        }else{
+            document.getElementById('SubDealer').value=result.subDealer;
+        }
+        document.getElementById('d-total-pmt').innerText='$ '+result.totalPayment.toLocaleString();
+        document.getElementById('d-terms').innerText=result.totalTerms+' 期';
+        var st=1,summ='';
+        result.phases.forEach(function(p){
+            if(p.months>0){summ+='第 '+st+'–'+(st+p.months-1)+' 期：$'+(p.value||0).toLocaleString()+'<br>';st+=p.months;}
+        });
+        document.getElementById('d-summary').innerHTML=summ;
+        var tbody=document.querySelector('#amortTable tbody');
+        tbody.innerHTML='';
+        var phaseLens=result.phases.filter(function(p){return p.months>0;}).map(function(p){return p.months;});
+        var phaseEndIdx=[]; var cum=0;
+        phaseLens.forEach(function(len){cum+=len; phaseEndIdx.push(cum-1);});
+        result.schedule.forEach(function(row){
+            tbody.innerHTML+='<tr><td>'+row.period+'</td><td>'+row.payment.toLocaleString()+'</td><td>'+row.interest.toLocaleString()+'</td><td>'+row.principal.toLocaleString()+'</td><td>'+row.balance.toLocaleString()+'</td></tr>';
+        });
+        updateUI();
+    }
+    function renderOutput(){ smartSolve(); }
+
+    /* ---- Export Excel ---- */
+    function exportSingleExcel(){
+        if(typeof XLSX==='undefined') return alert('Excel 匯出需要連線載入 SheetJS');
+        var data=[
+            ['BSD 精算核心 試算報告 · Actuarial Report v4.0'],
+            ['產生時間 Generated',new Date().toLocaleString()],[],
+            ['建議售價 MSRP',document.getElementById('MSRP').value||0],
+            ['分期本金 Principal',document.getElementById('B20').value||0],
+            ['客戶利率 IRR',document.getElementById('d-crate').innerText],
+            ['總期數 Terms',document.getElementById('d-terms').innerText],
+            ['總付款 Total Pmt',document.getElementById('d-total-pmt').innerText],
+            ['補貼/退佣 Subsidy',document.getElementById('res-val').innerText],[],
+            ['期數','月付款 Pmt','利息 Int.','本金 Prin.','餘額 Bal.']
+        ];
+        document.querySelectorAll('#amortTable tbody tr').forEach(function(row){
+            var rd=[]; row.querySelectorAll('td').forEach(function(c){rd.push(c.innerText)}); data.push(rd);
+        });
+        var ws=XLSX.utils.aoa_to_sheet(data);
+        ws['!cols']=[{wch:10},{wch:15},{wch:15},{wch:15},{wch:18}];
+        var wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,'試算報告');
+        XLSX.writeFile(wb,'BSD_試算報告_v4.xlsx');
+    }
+
+    /* ---- Export PDF ---- */
+    function exportSinglePDF(){
+        if(typeof html2pdf==='undefined') return alert('PDF 匯出需要連線載入 html2pdf');
+        var rows=document.querySelectorAll('#amortTable tbody tr');
+        if(rows.length===0) return alert('尚無攤還表資料，請先計算');
+        var loan=document.getElementById('B20').value||'0';
+        var msrp=document.getElementById('MSRP').value||'';
+        var rate=document.getElementById('d-crate').innerText;
+        var terms=document.getElementById('d-terms').innerText;
+        var totalPmt=document.getElementById('d-total-pmt').innerText;
+        var summary=document.getElementById('d-summary').innerHTML;
+        var tR='';
+        rows.forEach(function(row){
+            var cells=row.querySelectorAll('td'); tR+='<tr>';
+            cells.forEach(function(c,idx){
+                var s='padding:4px 5px;border:1px solid #ddd;text-align:center;font-size:10px;color:#334155;';
+                if(idx===1) s+='color:#0f1c2e;font-weight:bold;';
+                tR+='<td style="'+s+'">'+c.innerText+'</td>';
+            }); tR+='</tr>';
+        });
+        var mB=msrp&&parseFloat(msrp)>0?'<td style="padding:8px;vertical-align:top"><div style="font-size:8px;color:#93c5fd">MSRP</div><div style="font-size:13px;font-weight:bold;color:white">$ '+parseFloat(msrp).toLocaleString()+'</div></td>':'';
+        var dashCells=mB
+            +'<td style="padding:8px;vertical-align:top"><div style="font-size:8px;color:#93c5fd">Principal</div><div style="font-size:13px;font-weight:bold;color:white">$ '+parseFloat(loan).toLocaleString()+'</div></td>'
+            +'<td style="padding:8px;vertical-align:top"><div style="font-size:8px;color:#93c5fd">IRR</div><div style="font-size:13px;font-weight:bold;color:white">'+rate+'</div></td>'
+            +'<td style="padding:8px;vertical-align:top"><div style="font-size:8px;color:#93c5fd">Terms</div><div style="font-size:13px;font-weight:bold;color:white">'+terms+'</div></td>'
+            +'<td style="padding:8px;vertical-align:top"><div style="font-size:8px;color:#93c5fd">Total Pmt</div><div style="font-size:13px;font-weight:bold;color:white">'+totalPmt+'</div></td>';
+        var fullHTML='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:sans-serif;background:white;width:100%}</style></head><body>'
+            +'<div style="padding:20px 24px">'
+            +'<div style="text-align:center;margin-bottom:12px"><div style="font-size:15px;font-weight:900;color:#0f1c2e">BSD 精算核心 試算報告 · Actuarial Report</div><div style="font-size:9px;color:#94a3b8;margin-top:3px">'+new Date().toLocaleString()+'</div></div>'
+            +'<table style="width:100%;background:#0f1c2e;border-radius:6px;border-collapse:collapse;margin-bottom:8px"><tr>'+dashCells+'</tr></table>'
+            +'<div style="background:#0f1c2e;border-radius:0 0 6px 6px;margin-top:-10px;padding:6px 10px 8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">'
+            +'<div style="font-size:9px;color:rgba(255,255,255,0.62)">'+summary+'</div>'
+            +'<div style="font-size:7.5px;color:rgba(255,255,255,0.32);text-align:right;white-space:nowrap;line-height:1.7;">本表僅供參考，實際攤還金額分配及結清金額需以 VWFS 系統資料為準<br>For reference only. Actual settlement amounts subject to VWFS system records.</div>'
+            +'</div>'
+            +'<div style="height:12px"></div>'
+            +'<div style="font-size:12px;font-weight:900;color:#0f1c2e;margin-bottom:5px">本息攤還表 · Amortization Schedule</div>'
+            +'<table style="width:100%;border-collapse:collapse;table-layout:fixed"><thead><tr>'
+            +'<th style="background:#0f1c2e;color:white;padding:5px;font-size:9px;width:12%">期數</th>'
+            +'<th style="background:#0f1c2e;color:white;padding:5px;font-size:9px;width:22%">月付款</th>'
+            +'<th style="background:#0f1c2e;color:white;padding:5px;font-size:9px;width:18%">利息</th>'
+            +'<th style="background:#0f1c2e;color:white;padding:5px;font-size:9px;width:22%">本金</th>'
+            +'<th style="background:#0f1c2e;color:white;padding:5px;font-size:9px;width:26%">餘額</th>'
+            +'</tr></thead><tbody>'+tR+'</tbody></table>'
+            +'<div style="text-align:center;margin-top:10px;font-size:8px;color:#94a3b8">BSD Core v4.0 · Actuarial Engine</div>'
+            +'</div></body></html>';
+        var iframe=document.createElement('iframe');
+        iframe.style.cssText='position:absolute;left:-9999px;top:0;width:794px;height:1123px;border:none;';
+        document.body.appendChild(iframe);
+        var idoc=iframe.contentDocument||iframe.contentWindow.document;
+        idoc.open(); idoc.write(fullHTML); idoc.close();
+        setTimeout(function(){
+            html2pdf().set({
+                margin:0,filename:'BSD_試算報告_v4.pdf',
+                image:{type:'jpeg',quality:0.98},
+                html2canvas:{scale:2,useCORS:true,scrollY:0},
+                jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+                pagebreak:{mode:['css','legacy'],avoid:'tr'}
+            }).from(idoc.body.firstChild).save()
+              .then(function(){document.body.removeChild(iframe)})
+              .catch(function(){try{document.body.removeChild(iframe)}catch(e){}});
+        },300);
+    }
+
+    /* ---- Copy Summary ---- */
+    function copyCoreSummary(){
+        var rows=document.querySelectorAll('#amortTable tbody tr');
+        if(rows.length===0) return alert('尚無試算資料，請先計算');
+        var msrp=parseFloat(document.getElementById('MSRP').value)||0;
+        var pv=parseFloat(document.getElementById('B20').value)||0;
+        var crate=document.getElementById('d-crate').innerText;
+        var terms=document.getElementById('d-terms').innerText;
+        var totalPmt=document.getElementById('d-total-pmt').innerText;
+        var resVal=document.getElementById('res-val').innerText;
+        var summaryText=document.getElementById('d-summary').innerText.trim();
+        var lines=['BSD 精算核心 試算摘要','產生時間：'+new Date().toLocaleString(),''];
+        if(msrp>0) lines.push('MSRP 售價：$ '+msrp.toLocaleString());
+        lines.push('分期本金：$ '+pv.toLocaleString());
+        lines.push('IRR 客戶利率：'+crate);
+        lines.push('期數：'+terms);
+        lines.push('總付款：'+totalPmt);
+        lines.push('補貼／退佣：'+resVal);
+        lines.push('');
+        lines.push(summaryText);
+        lines.push('');
+        lines.push('本表僅供參考，實際攤還金額分配及結清金額需以 VWFS 系統資料為準');
+        navigator.clipboard.writeText(lines.join('\n')).then(function(){
+            var btn=document.getElementById('btn-copy-core');
+            if(btn){btn.innerHTML='✅ 已複製';setTimeout(function(){btn.innerHTML='📋 複製';},2000);}
+        }).catch(function(){ alert('複製失敗，請手動選取'); });
+    }
+</script>
+<script src="bsd-comfort.js"></script>
+</body>
+</html>

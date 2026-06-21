@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>BSD 專業版 · Pro Internal Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f2f2;--bg-white:#fff;--bg-card:#fff;--border:rgba(0,70,102,.10);
+  --text:#00253e;--text-secondary:#4c5356;--text-muted:#a8adb3;
+  --accent:#004666;--accent2:#2b9ab5;--danger:#ff4963;--success:#95a844;
+  --nav-dark:#00253e;--radius:8px;--radius-sm:8px;
+  --shadow-sm:0 2px 12px rgba(0,37,62,.08);--shadow:0 2px 12px rgba(0,37,62,.08);--shadow-lg:0 8px 28px rgba(0,37,62,.12);
+  --font:'Plus Jakarta Sans','Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace;--topbar-h:60px;
+  --petrol:#004666;--petrol-dark:#00253e;--petrol-light:#c6dfe7;--cyan:#2b9ab5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background-color:#f2f2f2;background-image:radial-gradient(rgba(0,70,102,0.086) 1.1px,transparent 1.1px);background-size:24px 24px;color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before,body::after{display:none}
+
+/* TOP BAR — Velocity */
+.topbar{position:sticky;top:0;z-index:100;height:var(--topbar-h);background:#00253e;border-bottom:none;overflow:hidden}
+.topbar-inner{max-width:1100px;margin:0 auto;height:100%;display:flex;align-items:center;padding:0 28px;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;position:relative;z-index:2}
+.brand-logo{width:34px;height:34px;background:#c6dfe7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#00253e;box-shadow:none}
+.brand-name{font-weight:800;font-size:.95rem;letter-spacing:-.025em;color:#fff}
+.brand-name em{font-style:normal;color:#fff;-webkit-text-fill-color:#fff;background:none}
+.brand-sub{font-size:7.5px;color:rgba(255,255,255,.3);font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:8px;position:relative;z-index:2}
+.pro-badge{font-family:var(--mono);font-size:10px;color:#c6dfe7;background:rgba(43,154,181,.14);border:1px solid #2b9ab5;padding:5px 13px;border-radius:6px;font-weight:700}
+.back-link{font-size:10px;color:rgba(255,255,255,.45);text-decoration:none;padding:5px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;font-family:var(--mono);font-weight:700;transition:all .2s}
+.back-link:hover{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.22)}
+.velo-top-svg{position:absolute;top:0;right:0;width:480px;height:100%;pointer-events:none}
+
+/* GATE */
+#gate-overlay{position:fixed;inset:0;background:rgba(0,37,62,.88);backdrop-filter:blur(16px);z-index:9999;display:flex;align-items:center;justify-content:center}
+.gate-card{background:#fff;border-radius:8px;padding:40px 36px;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,37,62,.18);position:relative;overflow:hidden}
+.gate-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#2b9ab5;border-radius:8px 8px 0 0}
+.gate-icon{font-size:2.5rem;margin-bottom:14px}
+.gate-h{font-size:1.3rem;font-weight:800;margin-bottom:3px;letter-spacing:-.02em;color:#00253e}
+.gate-sub{font-size:11px;color:var(--text-muted);font-family:var(--mono);margin-bottom:20px}
+.gate-input{width:100%;padding:13px 16px;border-radius:8px;border:1.5px solid rgba(0,70,102,.15);background:#f2f2f2;font-size:15px;font-family:var(--mono);color:#00253e;outline:none;text-align:center;letter-spacing:.12em;transition:border-color .2s}
+.gate-input:focus{border-color:#2b9ab5;box-shadow:0 0 0 3px rgba(43,154,181,.09)}
+.gate-btn{width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#00253e 56%,transparent 56%),repeating-linear-gradient(135deg,transparent,transparent 8px,rgba(255,255,255,.08) 8px,rgba(255,255,255,.08) 9.5px),#004666;color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.gate-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,70,102,.28)}
+.gate-err{color:var(--danger);font-size:12px;margin-top:10px;height:18px;font-weight:700}
+.gate-back{font-size:11px;color:var(--text-muted);margin-top:16px;cursor:pointer;font-family:var(--mono)}
+.gate-back:hover{color:#2b9ab5;text-decoration:underline}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+
+/* HERO — Velocity dark card */
+.hero{background:linear-gradient(135deg,#00253e 58%,transparent 58%),repeating-linear-gradient(135deg,transparent,transparent 11px,rgba(43,154,181,.055) 11px,rgba(43,154,181,.055) 12.5px),#00253e;border-radius:8px;padding:20px 24px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,37,62,.18)}
+.hero::before,.hero::after{display:none}
+.hero-eye{font-family:var(--mono);font-size:9px;color:rgba(198,223,231,.6);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;position:relative;z-index:1}
+.hero-h{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px;position:relative;z-index:1}
+.hero-sub{font-size:11px;color:rgba(255,255,255,.42);font-family:var(--mono);margin-bottom:12px;position:relative;z-index:1}
+.session-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(149,168,68,.15);border:1px solid rgba(149,168,68,.35);border-radius:6px;padding:4px 12px;font-size:10px;color:#95a844;font-weight:700;font-family:var(--mono);position:relative;z-index:1}
+.dot{width:6px;height:6px;border-radius:50%;background:#95a844;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* SECTIONS */
+.sec-wrap{margin-bottom:32px}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sec-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sec-labels{display:flex;flex-direction:column;gap:1px}
+.sec-zh{font-size:.9rem;font-weight:800;letter-spacing:-.02em}
+.sec-en{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7;font-family:var(--mono)}
+.sec-line{flex:1;height:1px;background:rgba(0,70,102,.1)}
+.sec-bsd .sec-ico{background:rgba(0,70,102,.08)}
+.sec-bsd .sec-zh{color:#00253e}.sec-bsd .sec-en{color:#004666}
+.sec-fleet .sec-ico{background:rgba(5,150,105,.08)}
+.sec-fleet .sec-zh{color:#065f46}.sec-fleet .sec-en{color:#059669}
+.sec-mkt .sec-ico{background:rgba(216,170,0,.1)}
+.sec-mkt .sec-zh{color:#00253e}.sec-mkt .sec-en{color:#d8aa00}
+
+/* TOOL CARDS */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tool-card{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:none;border-radius:8px;padding:22px;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,37,62,.08);transition:all .25s}
+.tool-card:hover{box-shadow:0 6px 24px rgba(0,37,62,.13);transform:translateY(-2px)}
+.tool-card.dim{opacity:.65;cursor:default}.tool-card.dim:hover{transform:none;box-shadow:0 2px 12px rgba(0,37,62,.08)}
+.accent-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0}
+.t-ico{font-size:1.8rem;margin-bottom:12px;line-height:1}
+.t-zh{font-size:1rem;font-weight:800;letter-spacing:-.01em;margin-bottom:2px;color:#00253e}
+.t-en{font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px;font-family:var(--mono)}
+.t-desc{font-size:12px;color:var(--text-secondary);line-height:1.65}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;font-family:var(--mono);padding:3px 9px;border-radius:6px;margin-top:12px;letter-spacing:.04em}
+.b-live{background:rgba(0,70,102,.06);color:#004666;border:1px solid rgba(0,70,102,.15)}.b-soon{background:rgba(0,37,62,.04);color:var(--text-muted);border:1px solid rgba(0,37,62,.08)}
+
+/* FOOTER */
+.footer{text-align:center;padding:24px 0 8px}
+.logout-btn{background:transparent;border:1px solid rgba(0,70,102,.15);color:var(--text-muted);padding:8px 20px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font);font-weight:700;transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+@media(max-width:600px){.hero{padding:20px}.hero-h{font-size:1.2rem}.tool-grid{grid-template-columns:1fr}.topbar-inner{padding:0 14px}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(15,23,42,.1);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="gate-overlay">
+  <div class="gate-card">
+    <div class="gate-icon">🔐</div>
+    <div class="gate-h">BSD 專業版</div>
+    <div class="gate-sub">Pro Internal Tools · Authorized Access Only</div>
+    <input class="gate-input" type="password" id="gate-pw" placeholder="••••••••••" maxlength="64" onkeydown="if(event.key==='Enter')verify()">
+    <button class="gate-btn" onclick="verify()">驗證並進入 · Verify &amp; Enter</button>
+    <div class="gate-err" id="gate-err"></div>
+    <div class="gate-back" onclick="location.href='../index.html'">← 返回精算核心 · Back to Core Engine</div>
+  </div>
+</div>
+
+<header class="topbar">
+  <svg class="velo-top-svg" viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="23" y1="52" x2="42" y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.40" stroke-linecap="round"/>
+    <line x1="46" y1="52" x2="65" y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.362" stroke-linecap="round"/>
+    <line x1="69" y1="52" x2="88" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.25" stroke-linecap="round"/>
+    <line x1="92" y1="52" x2="111" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.21" stroke-linecap="round"/>
+    <line x1="115" y1="52" x2="134" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.17" stroke-linecap="round"/>
+    <line x1="138" y1="52" x2="157" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.13" stroke-linecap="round"/>
+    <line x1="161" y1="52" x2="180" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.09" stroke-linecap="round"/>
+    <line x1="184" y1="52" x2="203" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.07" stroke-linecap="round"/>
+  </svg>
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-logo">🔬</div>
+      <div>
+        <div class="brand-name"><em>BSD</em> 專業版</div>
+        <div class="brand-sub">Pro Internal Tools</div>
+      </div>
+    </div>
+    <div class="topbar-end">
+      <span class="pro-badge">PRO</span>
+      <a class="back-link" href="../index.html">← 精算核心</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="pro-content" style="display:none">
+
+  <div class="hero">
+    <div class="hero-eye">BSD Actuarial Core — Pro Tier</div>
+    <div class="hero-h">內部專業工具 · Internal Tools</div>
+    <div class="hero-sub">僅限授權同仁使用</div>
+    <div class="session-pill"><span class="dot"></span>工作階段已驗證 · Session Active &nbsp;|&nbsp; 關閉分頁即登出</div>
+  </div>
+
+  <!-- BSD -->
+  <div class="sec-wrap sec-bsd">
+    <div class="sec-hdr">
+      <div class="sec-ico">🔬</div>
+      <div class="sec-labels"><span class="sec-zh">BSD 精算工具</span><span class="sec-en">BSD Actuarial Tools</span></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="tools/bsd-audit.html">
+        <div class="accent-bar" style="background:linear-gradient(90deg,#7c3aed,#a855f7)"></div>
+        <div class="t-ico">🔍</div>
+        <div class="t-zh">智慧覆核引擎</div>
+        <div class="t-en">Smart Audit Engine</div>
+        <div class="t-desc">批次稽核分期合約，自動比對補貼上限、客戶利率、月付款，產出差異報告。<br>Batch audit contracts against subsidy limits and expected IRR.</div>
+        <span class="badge b-live">🟢 v5.0 · Live</span>
+      </a>
+      <a class="tool-card" href="tools/flooring-demo/index.html">
+        <div class="accent-bar" style="background:linear-gradient(90deg,#0369a1,#2b9ab5)"></div>
+        <div class="t-ico">📊</div>
+        <div class="t-zh">存貨融資 / Demo 投資分析</div>
+        <div class="t-en">Flooring &amp; Demo ROI Analysis</div>
+        <div class="t-desc">試算申辦 Demo Car 所提升的財務配合比，能否透過較低的存貨融資利率節省足夠成本，覆蓋 Demo 額外投入，計算跨品牌淨效益。</div>
+        <span class="badge b-live">🟢 Live</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Fleet -->
+  <div class="sec-wrap sec-fleet">
+    <div class="sec-hdr">
+      <div class="sec-ico">🚗</div>
+      <div class="sec-labels"><span class="sec-zh">Fleet 車隊管理</span><span class="sec-en">Fleet Management</span></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="tools/fleet-check/index.html">
+        <div class="accent-bar" style="background:linear-gradient(90deg,#059669,#34d399)"></div>
+        <div class="t-ico">🚘</div>
+        <div class="t-zh">保有台數確認</div>
+        <div class="t-en">Fleet Inventory Check</div>
+        <div class="t-desc">批量查詢監理服務網租賃公司保有車輛台數，最多 20 組關鍵字，結果可匯出 Excel。</div>
+        <span class="badge b-soon">🔜 Coming Soon</span>
+      </a>
+      <div class="tool-card dim">
+        <div class="accent-bar" style="background:linear-gradient(90deg,#059669,#34d399)"></div>
+        <div class="t-ico">🔎</div>
+        <div class="t-zh">動產擔保公示資料查詢</div>
+        <div class="t-en">Chattel Mortgage Lookup</div>
+        <div class="t-desc">自動摘取動產擔保公示資料，支援批次查詢與結果比對。<br>Auto-fetch public chattel mortgage records with batch query.</div>
+        <span class="badge b-soon">🔜 Coming Soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market -->
+  <div class="sec-wrap sec-mkt">
+    <div class="sec-hdr">
+      <div class="sec-ico">📈</div>
+      <div class="sec-labels"><span class="sec-zh">Market 市場資料</span><span class="sec-en">Market Data</span></div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card dim">
+        <div class="accent-bar" style="background:linear-gradient(90deg,#d97706,#f59e0b)"></div>
+        <div class="t-ico">📊</div>
+        <div class="t-zh">專案強度自動分析</div>
+        <div class="t-en">Deal Strength Analyzer</div>
+        <div class="t-desc">根據多維度指標自動評估專案健康度，輸出建議與風險提示。<br>Multi-factor deal health scoring with risk flagging.</div>
+        <span class="badge b-soon">🔜 Coming Soon</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="logout-btn" onclick="logout()">登出專業版 · Sign Out</button>
+  </div>
+</div>
+
+<script>
+var H='b3f6d3235c9f99eedb6e3b099e134c6e85afc111eec2210f14928668e76e27bd';
+(function(){var b=new URLSearchParams(location.search).get('a')==='1';if(b)sessionStorage.setItem('bsd_pro_auth','1');if(sessionStorage.getItem('bsd_pro_auth')==='1')show();if(b&&history.replaceState)history.replaceState(null,'',location.pathname);})();
+async function verify(){
+  var pw=document.getElementById('gate-pw').value;
+  if(!pw){setErr('請輸入密碼');return;}
+  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+  var hash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+  if(hash===H){sessionStorage.setItem('bsd_pro_auth','1');show();}
+  else{setErr('密碼錯誤 Incorrect password');document.getElementById('gate-pw').value='';document.getElementById('gate-pw').focus();}
+}
+function show(){document.getElementById('gate-overlay').style.display='none';document.getElementById('pro-content').style.display='block';}
+function setErr(m){document.getElementById('gate-err').textContent=m;setTimeout(function(){document.getElementById('gate-err').textContent='';},3000);}
+function logout(){sessionStorage.removeItem('bsd_pro_auth');location.href='../index.html';}
+</script>
+</body>
+</html>
+ 

@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Wholesale Finance / Demo 投資分析 · BSD Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#f2f2f2; --white:#fff; --border:rgba(0,70,102,.10);
+  --text:#00253e; --t2:#4c5356; --muted:#a8adb3;
+  --accent:#004666; --cyan:#2b9ab5;
+  --green:#16a34a; --green-l:rgba(22,163,74,.08);
+  --red:#dc2626;   --red-l:rgba(220,38,38,.08);
+  --gold:#d97706;  --gold-l:rgba(217,119,6,.08);
+  --blue:#1d4ed8;  --blue-l:rgba(29,78,216,.08);
+  --mono:'JetBrains Mono',monospace;
+  --font:'Plus Jakarta Sans','Noto Sans TC',sans-serif;
+  --r:8px; --sh:0 2px 12px rgba(0,37,62,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);background-image:radial-gradient(rgba(0,70,102,.086) 1.1px,transparent 1.1px);background-size:24px 24px;color:var(--text);min-height:100vh}
+
+/* ─ TOPBAR ─ */
+.topbar{position:sticky;top:0;z-index:100;height:60px;background:#00253e;overflow:hidden}
+.velo-svg{position:absolute;top:0;right:0;width:480px;height:100%;pointer-events:none;z-index:1}
+.tb-inner{max-width:1100px;margin:0 auto;height:100%;display:flex;align-items:center;padding:0 28px;gap:20px;position:relative;z-index:2}
+.brand-nm{font-weight:800;font-size:.95rem;color:#fff;letter-spacing:-.025em}
+.brand-nm em{font-style:normal;color:#2b9ab5}
+.brand-s{font-size:7.5px;color:rgba(255,255,255,.3);font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.tb-end{margin-left:auto;display:flex;align-items:center;gap:8px}
+.back-lnk{font-size:10px;color:rgba(255,255,255,.45);text-decoration:none;padding:5px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.1);font-family:var(--mono);font-weight:700;transition:all .2s}
+.back-lnk:hover{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.22)}
+.pro-bdg{font-family:var(--mono);font-size:10px;color:#c6dfe7;background:rgba(43,154,181,.14);border:1px solid #2b9ab5;padding:5px 13px;border-radius:6px;font-weight:700}
+
+/* ─ LAYOUT ─ */
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px}
+
+/* ─ HERO ─ */
+.hero{background:linear-gradient(135deg,#00253e 56%,transparent 56%),repeating-linear-gradient(135deg,transparent,transparent 8px,rgba(43,154,181,.055) 8px,rgba(43,154,181,.055) 9.5px),#00253e;border-radius:var(--r);padding:22px 26px;margin-bottom:20px;color:#fff;box-shadow:0 4px 20px rgba(0,37,62,.18)}
+.hero-eye{font-size:8.5px;color:rgba(198,223,231,.55);font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+.hero-h{font-size:1.25rem;font-weight:800;letter-spacing:-.025em;margin-bottom:3px}
+.hero-sub{font-size:10.5px;color:rgba(255,255,255,.38);font-family:var(--mono);margin-bottom:10px}
+.hero-desc{font-size:11.5px;color:rgba(255,255,255,.6);line-height:1.75}
+
+/* ─ CARD ─ */
+.card{background:var(--white);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);margin-bottom:16px}
+.card-title{font-size:.88rem;font-weight:800;letter-spacing:-.015em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ctag{font-size:9.5px;font-weight:700;font-family:var(--mono);color:var(--muted);background:rgba(0,70,102,.05);border:1px solid rgba(0,70,102,.1);padding:2px 8px;border-radius:4px}
+
+/* ─ ADD BRAND ─ */
+.add-brand-area{position:relative;display:inline-block;margin-top:4px}
+.add-brand-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;font-size:13px;font-weight:700;border:1.5px dashed rgba(0,70,102,.22);border-radius:var(--r);background:rgba(0,70,102,.03);color:var(--t2);cursor:pointer;font-family:var(--font);transition:all .18s}
+.add-brand-btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(43,154,181,.06)}
+.add-brand-btn:disabled{opacity:.4;cursor:not-allowed}
+.brand-menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--white);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,37,62,.14);z-index:50;min-width:180px;overflow:hidden;border:1px solid rgba(0,70,102,.08)}
+.menu-opt{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--t2);transition:background .12s}
+.menu-opt:hover{background:rgba(43,154,181,.06)}
+.menu-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.brand-count-info{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:10px}
+
+/* ─ BRAND CARD ─ */
+.brand-card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden;border:1px solid rgba(0,70,102,.06)}
+.bc-header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(0,70,102,.06)}
+.bc-color-bar{width:4px;height:36px;border-radius:3px;flex-shrink:0}
+.bc-brand-name{font-weight:800;font-size:1rem;letter-spacing:-.02em;flex:1}
+.bc-remove{width:28px;height:28px;border-radius:6px;border:1px solid rgba(0,70,102,.12);background:var(--white);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.bc-remove:hover{border-color:var(--red);color:var(--red);background:var(--red-l)}
+.bc-body{padding:18px 18px 0}
+.bc-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:700px){.bc-2col{grid-template-columns:1fr}}
+.subsec{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 10px;border-radius:6px;background:rgba(0,70,102,.04);margin-bottom:13px;font-family:var(--mono);display:flex;align-items:center;gap:5px}
+
+/* ─ WS STAGES ─ */
+.ws-stage-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px}
+.ws-stage-badge{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);padding:3px 9px;border-radius:5px}
+.ws-s1{background:rgba(43,154,181,.12);color:#2b9ab5}
+.ws-s2{background:rgba(16,163,74,.12);color:#16a34a}
+.add-stage-btn{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--cyan);background:transparent;border:1.5px dashed rgba(43,154,181,.3);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .18s;margin:6px 0 4px}
+.add-stage-btn:hover{background:rgba(43,154,181,.06);border-color:var(--cyan)}
+.ws-stage2-wrap{border-top:1px dashed rgba(0,70,102,.12);margin-top:12px;padding-top:12px}
+
+/* ─ FIELDS ─ */
+.field{margin-bottom:11px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--t2);margin-bottom:5px}
+.fi{width:100%;padding:9px 12px;border:1.5px solid rgba(0,70,102,.13);border-radius:7px;font-size:13px;font-family:var(--mono);color:var(--text);background:var(--white);outline:none;transition:border-color .18s}
+.fi:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(43,154,181,.09)}
+.fi-row{display:flex;align-items:center;gap:8px}
+.fi-unit{font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+.fhint{font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono);line-height:1.5}
+.radio-row{display:flex;gap:12px;margin-bottom:8px}
+.ropt{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;color:var(--t2)}
+.ropt input{accent-color:var(--cyan);width:14px;height:14px}
+.qbtns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.qb{padding:4px 11px;font-size:11px;font-weight:700;border:1.5px solid rgba(0,70,102,.12);border-radius:6px;cursor:pointer;background:var(--white);color:var(--t2);font-family:var(--mono);transition:all .15s}
+.qb:hover{border-color:var(--cyan);color:var(--cyan)}
+.qb.on{border-color:var(--cyan);background:var(--cyan);color:#fff}
+
+/* ─ LIVE PREVIEW ─ */
+.live-prev{margin:16px -18px 0;padding:13px 18px;background:rgba(0,70,102,.03);border-top:1px solid rgba(0,70,102,.06);display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lp-item{text-align:center}
+.lp-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);color:var(--muted);margin-bottom:4px}
+.lp-val{font-size:15px;font-weight:800;font-family:var(--mono);letter-spacing:-.02em}
+.lp-sub{font-size:9px;font-family:var(--mono);color:var(--muted);margin-top:2px}
+.bc-footer{padding:0 18px 14px}
+
+/* ─ CALCULATE ─ */
+.calc-wrap{text-align:center;padding:8px 0 22px}
+.calc-btn{padding:20px 56px;font-size:17px;font-weight:800;border:none;border-radius:var(--r);background:linear-gradient(135deg,#00253e 56%,transparent 56%),repeating-linear-gradient(135deg,transparent,transparent 8px,rgba(255,255,255,.08) 8px,rgba(255,255,255,.08) 9.5px),#004666;color:#fff;cursor:pointer;font-family:var(--font);transition:all .2s;letter-spacing:-.01em;display:inline-flex;align-items:center;gap:10px}
+.calc-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,70,102,.3)}
+
+/* ─ RESULTS ─ */
+#results{display:none}
+.fade-in{animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─ METRIC GRID ─ */
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:640px){.metric-grid{grid-template-columns:1fr}}
+.mc{background:var(--white);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.mc-bar{height:3px;border-radius:3px;margin-bottom:12px}
+.mc-lbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:6px}
+.mc-val{font-size:1.5rem;font-weight:800;font-family:var(--mono);letter-spacing:-.02em;line-height:1.1}
+.mc-sub{font-size:10px;font-family:var(--mono);margin-top:5px;color:var(--muted)}
+.mc-extra{font-size:11px;font-weight:700;font-family:var(--mono);margin-top:6px;padding:3px 9px;border-radius:4px;display:inline-block}
+
+/* ─ BREAK-EVEN ─ */
+.be-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.be-card{border:1px solid rgba(0,70,102,.09);border-radius:var(--r);padding:16px 18px;background:rgba(0,37,62,.012)}
+.be-brand{font-size:11px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.be-3rates{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px;text-align:center}
+.be-r-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-family:var(--mono);color:var(--muted);margin-bottom:3px}
+.be-r-val{font-size:15px;font-weight:800;font-family:var(--mono);letter-spacing:-.02em}
+.be-meta{font-size:10.5px;font-family:var(--mono);color:var(--t2);margin:8px 0 4px}
+.be-track-wrap{position:relative;height:10px;margin:20px 0 36px}
+.be-track-bar{position:absolute;left:0;top:0;right:0;height:100%;background:rgba(0,70,102,.07);border-radius:6px;overflow:hidden}
+.be-fill-safe{position:absolute;left:0;top:0;height:100%;background:rgba(22,163,74,.5)}
+.be-fill-warn{position:absolute;top:0;height:100%;background:rgba(220,38,38,.35)}
+.be-vline{position:absolute;top:-5px;width:2.5px;height:20px;border-radius:2px;transform:translateX(-50%)}
+.be-circ{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);border:2.5px solid #fff;z-index:2}
+.be-lbl-above{position:absolute;top:-22px;font-size:8.5px;font-family:var(--mono);font-weight:700;transform:translateX(-50%);white-space:nowrap}
+.be-lbl-below{position:absolute;top:16px;font-size:8.5px;font-family:var(--mono);font-weight:700;transform:translateX(-50%);white-space:nowrap}
+.be-verdict{font-size:11px;padding:8px 12px;border-radius:6px;margin-top:8px;font-family:var(--mono);font-weight:600;line-height:1.55}
+.be-verdict-g{background:var(--green-l);color:var(--green)}.be-verdict-r{background:var(--red-l);color:var(--red)}
+
+/* ─ BRAND RESULT CARDS ─ */
+.br-card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:12px;overflow:hidden}
+.br-header{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;user-select:none}
+.br-header:hover{background:rgba(0,70,102,.02)}
+.br-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.br-name{font-weight:800;font-size:.9rem;flex:1}
+.br-net{font-size:13px;font-weight:800;font-family:var(--mono)}
+.br-chev{font-size:11px;color:var(--muted);transition:transform .2s}
+.br-chev.open{transform:rotate(180deg)}
+.br-body{display:none;padding:0 18px 16px;border-top:1px solid rgba(0,70,102,.06)}
+.br-body.open{display:block}
+.br-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0}
+@media(max-width:700px){.br-3col{grid-template-columns:1fr}}
+.br-stat{text-align:center}
+.br-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);color:var(--muted);margin-bottom:3px}
+.br-stat-val{font-size:14px;font-weight:800;font-family:var(--mono)}
+.br-divider{height:1px;background:rgba(0,70,102,.07);margin:12px 0}
+
+/* ─ AMORT TABLE ─ */
+.amort-toggle{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--cyan);cursor:pointer;margin-top:10px;display:inline-flex;align-items:center;gap:5px}
+.amort-toggle:hover{text-decoration:underline}
+.amort-section{display:none;margin-top:10px}
+.amort-section.open{display:block}
+.amort-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono)}
+.amort-table th{background:#00253e;color:rgba(255,255,255,.8);padding:7px 10px;text-align:right;font-size:9.5px;letter-spacing:.05em;font-weight:700}
+.amort-table th:first-child{text-align:center}
+.amort-table td{padding:7px 10px;border-bottom:1px solid rgba(0,70,102,.06);text-align:right}
+.amort-table td:first-child{text-align:center;font-weight:700}
+.amort-table tr:last-child td{background:rgba(0,70,102,.04);font-weight:700;border-top:2px solid rgba(0,70,102,.12)}
+.amort-2side{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.amort-2side{grid-template-columns:1fr}}
+.amort-side-label{font-size:10px;font-weight:800;font-family:var(--mono);margin-bottom:6px;padding:4px 10px;border-radius:5px}
+
+/* ─ INSIGHTS ─ */
+.insight-card{border-radius:var(--r);padding:14px 16px;margin-bottom:10px;border-left:4px solid;display:flex;gap:12px}
+.ins-g{background:var(--green-l);border-color:var(--green)}
+.ins-o{background:var(--gold-l);border-color:var(--gold)}
+.ins-r{background:var(--red-l);border-color:var(--red)}
+.ins-b{background:var(--blue-l);border-color:var(--blue)}
+.ins-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.ins-title{font-size:12px;font-weight:800;margin-bottom:3px}
+.ins-body{font-size:11.5px;color:var(--t2);line-height:1.7}
+.ins-hl{font-weight:800}
+
+/* ─ DETAIL TABLE ─ */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dtbl{width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono);min-width:900px}
+.dtbl th{background:#00253e;color:rgba(255,255,255,.8);padding:9px 11px;text-align:right;font-size:9px;letter-spacing:.06em;font-weight:700;white-space:nowrap}
+.dtbl th:first-child{text-align:left}
+.dtbl td{padding:9px 11px;border-bottom:1px solid rgba(0,70,102,.07);text-align:right;vertical-align:middle}
+.dtbl td:first-child{text-align:left}
+.dtbl tbody tr:hover td{background:rgba(0,70,102,.025)}
+.dtbl .tot-row td{background:rgba(0,37,62,.05);font-weight:800;border-top:2px solid rgba(0,70,102,.15)}
+.btag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
+.v-g{color:var(--green)} .v-r{color:var(--red)} .v-o{color:var(--gold)}
+
+/* ─ CHARTS ─ */
+.chart-grid{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.chart-grid{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:260px}
+
+/* ─ FOOTER ─ */
+.tool-footer{text-align:center;padding:20px 0 10px}
+.tool-footer p{font-size:10px;color:var(--muted);font-family:var(--mono)}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:rgba(0,37,62,.12);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ─ TOPBAR ─ -->
+<header class="topbar">
+  <svg class="velo-svg" viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="53"  y1="52" x2="72"  y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity=".40" stroke-linecap="round"/>
+    <line x1="76"  y1="52" x2="95"  y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity=".362" stroke-linecap="round"/>
+    <line x1="99"  y1="52" x2="118" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".324" stroke-linecap="round"/>
+    <line x1="122" y1="52" x2="141" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".286" stroke-linecap="round"/>
+    <line x1="145" y1="52" x2="164" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".248" stroke-linecap="round"/>
+    <line x1="168" y1="52" x2="187" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".21"  stroke-linecap="round"/>
+    <line x1="191" y1="52" x2="210" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".172" stroke-linecap="round"/>
+    <line x1="214" y1="52" x2="233" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".134" stroke-linecap="round"/>
+    <line x1="237" y1="52" x2="256" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity=".096" stroke-linecap="round"/>
+  </svg>
+  <div class="tb-inner">
+    <div>
+      <div class="brand-nm"><em>BSD</em> 專業版</div>
+      <div class="brand-s">BSD Sales Kit · Pro</div>
+    </div>
+    <div class="tb-end">
+      <span class="pro-bdg">PRO</span>
+      <a class="back-lnk" href="../../index.html">← 工具總覽</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ─ HERO ─ -->
+  <div class="hero">
+    <div class="hero-eye">BSD Pro · 投資效益分析 · Wholesale Finance &amp; Demo ROI</div>
+    <div class="hero-h">Wholesale Finance / Demo 投資綜合損益分析</div>
+    <div class="hero-sub">Dealer Flooring Cost Optimization &amp; Demo Car Financing ROI</div>
+    <div class="hero-desc">
+      以年化視角比較 FS vs 市場存貨融資利率差之 <strong>Wholesale 節省</strong>，同步以本息攤還法計算 Demo 車「申辦期數 × 持有期數」之<strong>實際融資成本差額</strong>，支援雙階段 WS 額度設定，取得最終淨效益與回收期。
+    </div>
+  </div>
+
+  <!-- ─ ADD BRAND AREA ─ -->
+  <div class="card">
+    <div class="card-title">
+      品牌配置
+      <span class="ctag" id="brand-count-tag">0 / 3</span>
+    </div>
+    <div id="brand-cards-wrap"></div>
+    <div class="add-brand-area">
+      <button class="add-brand-btn" id="add-btn" onclick="toggleMenu()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增品牌
+      </button>
+      <div class="brand-menu" id="brand-menu" style="display:none"></div>
+    </div>
+    <div class="brand-count-info" id="brand-info"></div>
+  </div>
+
+  <!-- ─ CALCULATE ─ -->
+  <div class="calc-wrap" id="calc-wrap" style="display:none">
+    <button class="calc-btn" onclick="runCalc()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8.5" y1="12" x2="10.5" y2="12"/><line x1="13.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="16" x2="10.5" y2="16"/><line x1="13.5" y1="15" x2="15.5" y2="17"/><line x1="15.5" y1="15" x2="13.5" y2="17"/></svg>
+      執行綜合損益分析
+    </button>
+  </div>
+
+  <!-- ─ RESULTS ─ -->
+  <div id="results">
+    <div class="metric-grid">
+      <div class="mc">
+        <div class="mc-bar" style="background:var(--green)"></div>
+        <div class="mc-lbl" style="color:var(--green)">Wholesale 年省利息</div>
+        <div class="mc-val" id="r-ws" style="color:var(--green)">—</div>
+        <div class="mc-sub">FS 利率 vs 市場利率 × 平均動用額度（年化，含多階段）</div>
+      </div>
+      <div class="mc">
+        <div class="mc-bar" style="background:var(--red)"></div>
+        <div class="mc-lbl" style="color:var(--red)">Demo 投資額外成本</div>
+        <div class="mc-val" id="r-demo" style="color:var(--red)">—</div>
+        <div class="mc-sub">FS Demo 融資成本（攤還法）＋開辦費 − 市場基準</div>
+      </div>
+      <div class="mc">
+        <div class="mc-bar" id="r-net-bar" style="background:var(--accent)"></div>
+        <div class="mc-lbl" id="r-net-lbl" style="color:var(--accent)">綜合淨效益</div>
+        <div class="mc-val" id="r-net">—</div>
+        <div class="mc-sub" id="r-net-sub">年化 Wholesale 節省 − Demo 額外成本</div>
+        <div class="mc-extra" id="r-roi" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Break-even WS Rate Analysis -->
+    <div class="card">
+      <div class="card-title">
+        損益平衡 WS 利率分析
+        <span class="ctag">Break-even Rate</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--t2);margin-bottom:14px;line-height:1.7">
+        在 Demo 台數、FS Demo 利率固定的前提下，<strong>Wholesale 利率需低於幾 % 才能使整體損益打平？</strong><br>
+        損益平衡 FS 利率 = 市場 WS 利率 − (Demo 額外成本 ÷ WS 動用額度 × 100)。目前 FS 利率若在此數字之下，策略合算。
+      </div>
+      <div class="be-grid" id="be-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">各品牌損益明細</div>
+      <div id="brand-results"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        智慧分析與建議
+        <span class="ctag">Insights</span>
+      </div>
+      <div id="insights"></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">各品牌效益比較</div>
+        <div class="chart-wrap"><canvas id="chart-bar"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">整體損益結構</div>
+        <div class="chart-wrap"><canvas id="chart-donut"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">完整數據試算表</div>
+      <div class="tbl-scroll">
+        <table class="dtbl">
+          <thead>
+            <tr>
+              <th style="text-align:left">品牌</th>
+              <th>WS 動用額度</th>
+              <th>FS WS 加權利率</th>
+              <th>市場 WS 加權利率</th>
+              <th style="color:#86efac">WS 年省利息</th>
+              <th>Demo 台數</th>
+              <th>申辦期</th>
+              <th>持有期</th>
+              <th>FS Demo 利率</th>
+              <th>FS Demo 利息</th>
+              <th>市場 Demo 利息</th>
+              <th>開辦費差額</th>
+              <th style="color:#fca5a5">Demo 額外成本</th>
+              <th style="color:#93c5fd">淨效益</th>
+            </tr>
+          </thead>
+          <tbody id="dtbl-body"></tbody>
+          <tfoot id="dtbl-foot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div><!-- /results -->
+
+  <div class="tool-footer">
+    <p>BSD 專屬應用系統 · Wholesale Finance / Demo 投資分析 · 僅供內部參考使用</p>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ============================================================
+//  BSD 專屬應用系統 (BSD Sales Kit) — Wholesale Finance / Demo 投資分析
+//  作者：今晚沒喝夠的小賈哥
+//  系統說明：此為業務單位自行獨立開發之應用系統，旨在最大化業務服務效能與實務應用分析能力。
+// ============================================================
+
+// ── Auth ─────────────────────────────────────────────────────
+(function(){if(sessionStorage.getItem('bsd_pro_auth')!=='1')location.href='../../index.html';})();
+
+// ── Brand definitions ─────────────────────────────────────────
+const BDEFS = {
+  AUDI:    {key:'AUDI',    label:'AUDI',     color:'#dc2626'},
+  VWPC:    {key:'VWPC',    label:'VW 乘用車', color:'#1d4ed8'},
+  SKODA:   {key:'SKODA',   label:'ŠKODA',    color:'#16a34a'},
+  VWCV:    {key:'VWCV',    label:'VW 商用車', color:'#0369a1'},
+  PORSCHE: {key:'PORSCHE', label:'Porsche',  color:'#7c3aed'}
+};
+
+// ── State ─────────────────────────────────────────────────────
+let cards  = [];
+let _id    = 0;
+let _charts = {};
+
+// ── Finance Math ──────────────────────────────────────────────
+function monthlyPmt(P, annualRate, n) {
+  if (P <= 0 || n <= 0) return 0;
+  const r = annualRate / 100 / 12;
+  if (r === 0) return P / n;
+  return P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+}
+
+function amort(P, annualRate, termMonths, holdMonths) {
+  const r   = annualRate / 100 / 12;
+  const pmt = monthlyPmt(P, annualRate, termMonths);
+  let   bal = P;
+  const rows = [];
+  const h   = Math.min(holdMonths, termMonths);
+  for (let m = 1; m <= h; m++) {
+    const interest  = bal * r;
+    const principal = pmt - interest;
+    bal = Math.max(0, bal - principal);
+    rows.push({ m, pmt, interest, principal, bal });
+  }
+  return rows;
+}
+
+function holdInterest(P, annualRate, termMonths, holdMonths) {
+  return amort(P, annualRate, termMonths, holdMonths).reduce((s,r) => s+r.interest, 0);
+}
+
+// ── DOM helpers ───────────────────────────────────────────────
+function v(id)  { const e=document.getElementById(id); return e?e.value:''; }
+function el(id) { return document.getElementById(id); }
+function radioVal(name) {
+  const c = document.querySelector('input[name="'+name+'"]:checked');
+  return c ? c.value : 'per_unit';
+}
+
+// ── Formatters ────────────────────────────────────────────────
+const W   = n => (n/10000).toFixed(2)+' 萬';
+const WS  = n => (n>=0?'+':'')+(n/10000).toFixed(2)+' 萬';
+const PCT = n => n.toFixed(2)+'%';
+const FMT = n => n.toLocaleString('zh-TW',{maximumFractionDigits:0});
+
+// ── Card calculation ──────────────────────────────────────────
+function calcCard(id) {
+  const g  = f => parseFloat(v(id+'-'+f)) || 0;
+  const gi = f => parseInt(v(id+'-'+f))   || 0;
+
+  // ── Wholesale Stage 1
+  const wsCredit1  = g('ws-credit')   * 10000;
+  const fsWsRate1  = g('fs-ws-rate');
+  const mktWsRate1 = g('mkt-ws-rate');
+  const fsWsInt1   = wsCredit1 * fsWsRate1  / 100;
+  const mktWsInt1  = wsCredit1 * mktWsRate1 / 100;
+  const wsSaving1  = Math.max(0, mktWsInt1 - fsWsInt1);
+
+  // ── Wholesale Stage 2 (optional — only if credit2 > 0)
+  const wsCredit2  = g('ws-credit-2') * 10000;
+  const fsWsRate2  = g('fs-ws-rate-2');
+  const mktWsRate2 = g('mkt-ws-rate-2');
+  const fsWsInt2   = wsCredit2 * fsWsRate2  / 100;
+  const mktWsInt2  = wsCredit2 * mktWsRate2 / 100;
+  const wsSaving2  = Math.max(0, mktWsInt2 - fsWsInt2);
+
+  // ── Combined WS
+  const wsCredit = wsCredit1 + wsCredit2;
+  const fsWsInt  = fsWsInt1  + fsWsInt2;
+  const mktWsInt = mktWsInt1 + mktWsInt2;
+  const wsSaving = wsSaving1 + wsSaving2;
+  // Weighted average rates (for display)
+  const fsWsRateAvg  = wsCredit > 0 ? fsWsInt  / wsCredit * 100 : 0;
+  const mktWsRateAvg = wsCredit > 0 ? mktWsInt / wsCredit * 100 : 0;
+
+  // ── Demo Finance
+  const units      = gi('demo-units');
+  const priceEach  = g('demo-price') * 10000;
+  const demoTotal  = units * priceEach;
+  const appTerm    = gi('app-term')    || 12;
+  const holdPeriod = Math.min(gi('hold-period') || 1, appTerm);
+  const fsDemoR    = g('fs-demo-rate') || 3.99;
+  const mktDemoR   = g('mkt-demo-rate');
+
+  const fsInt  = holdInterest(demoTotal, fsDemoR,  appTerm, holdPeriod);
+  const mktInt = holdInterest(demoTotal, mktDemoR, appTerm, holdPeriod);
+
+  const fsFeeType = radioVal(id+'-fs-fee-type');
+  const mktFeeType = radioVal(id+'-mkt-fee-type');
+  const fsFee  = fsFeeType  === 'total' ? g('fs-fee-amt')  : g('fs-fee-amt')  * units;
+  const mktFee = mktFeeType === 'total' ? g('mkt-fee-amt') : g('mkt-fee-amt') * units;
+
+  const fsDemoCost  = fsInt  + fsFee;
+  const mktDemoCost = mktInt + mktFee;
+  const demoExtra   = fsDemoCost - mktDemoCost;
+  const net         = wsSaving - demoExtra;
+
+  const fsAmortRows  = amort(demoTotal, fsDemoR,  appTerm, holdPeriod);
+  const mktAmortRows = amort(demoTotal, mktDemoR, appTerm, holdPeriod);
+
+  return {
+    // WS combined
+    wsCredit, fsWsInt, mktWsInt, wsSaving, fsWsRateAvg, mktWsRateAvg,
+    // WS stage breakdown
+    s1:{ credit:wsCredit1, fsRate:fsWsRate1,  mktRate:mktWsRate1,  saving:wsSaving1 },
+    s2: wsCredit2>0 ? { credit:wsCredit2, fsRate:fsWsRate2, mktRate:mktWsRate2, saving:wsSaving2 } : null,
+    // Demo
+    units, demoTotal, appTerm, holdPeriod, fsDemoR, mktDemoR,
+    fsFee, mktFee, fsInt, mktInt, fsDemoCost, mktDemoCost, demoExtra,
+    net, fsAmortRows, mktAmortRows
+  };
+}
+
+// ── Menu / Brand management ───────────────────────────────────
+function toggleMenu() {
+  const menu = el('brand-menu');
+  if (menu.style.display !== 'none') { menu.style.display='none'; return; }
+  const used  = cards.map(c=>c.key);
+  const avail = Object.values(BDEFS).filter(b=>!used.includes(b.key));
+  if (!avail.length || cards.length >= 3) return;
+  menu.innerHTML = avail.map(b =>
+    '<div class="menu-opt" onclick="addBrand(\''+b.key+'\')">'+
+    '<span class="menu-dot" style="background:'+b.color+'"></span>'+b.label+'</div>'
+  ).join('');
+  menu.style.display = 'block';
+  setTimeout(() => document.addEventListener('click', _closeMenu, {once:true}), 10);
+}
+function _closeMenu(e) {
+  const m=el('brand-menu'), btn=el('add-btn');
+  if (!m.contains(e.target) && e.target!==btn) m.style.display='none';
+}
+
+// ── FIX #2: Only append/remove the affected card, never re-render all ──
+function addBrand(key) {
+  el('brand-menu').style.display = 'none';
+  if (cards.find(c=>c.key===key) || cards.length>=3) return;
+  const b  = BDEFS[key];
+  const id = 'bc'+(++_id);
+  const card = {id, key, label:b.label, color:b.color};
+  cards.push(card);
+  const wrap = el('brand-cards-wrap');
+  const div  = document.createElement('div');
+  div.className = 'brand-card';
+  div.id = 'card-'+id;
+  div.innerHTML = brandCardHTML(card);
+  wrap.appendChild(div);
+  initQBtns(id);
+  updateUI();
+}
+
+function removeBrand(id) {
+  cards = cards.filter(c=>c.id!==id);
+  const cardEl = document.getElementById('card-'+id);
+  if (cardEl) cardEl.remove();
+  updateUI();
+  el('results').style.display = 'none';
+}
+
+function updateUI() {
+  const n = cards.length;
+  el('brand-count-tag').textContent = n+' / 3';
+  el('calc-wrap').style.display  = n>0 ? 'block' : 'none';
+  el('add-btn').disabled         = n>=3;
+  el('brand-info').textContent   = n>=3 ? '已達最多 3 個品牌上限' : '';
+}
+
+// ── Brand card HTML ────────────────────────────────────────────
+function brandCardHTML(c) {
+  const id = c.id;
+  return `
+<div class="bc-header">
+  <div class="bc-color-bar" style="background:${c.color}"></div>
+  <div class="bc-brand-name" style="color:${c.color}">${c.label}</div>
+  <button class="bc-remove" onclick="removeBrand('${id}')" title="移除此品牌">✕</button>
+</div>
+<div class="bc-body">
+  <div class="bc-2col">
+
+    <!-- ── WHOLESALE FINANCE ── -->
+    <div>
+      <div class="subsec">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>
+        Wholesale Finance 存貨融資
+      </div>
+
+      <!-- Stage 1 -->
+      <div class="ws-stage-hdr"><span class="ws-stage-badge ws-s1">第一階段</span></div>
+      <div class="field">
+        <label class="fl">FS 存貨融資利率 (%)</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-fs-ws-rate" step="0.01" placeholder="例：1.5" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">% / 年</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">市場存貨融資利率 (%)</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-mkt-ws-rate" step="0.01" placeholder="例：3.0" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">% / 年</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">平均動用額度（萬元）</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-ws-credit" step="1" placeholder="例：5000" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">萬元</span>
+        </div>
+        <div class="fhint">年度平均 Wholesale 動用水位</div>
+      </div>
+
+      <!-- Stage 2 toggle -->
+      <button class="add-stage-btn" id="${id}-stage2-btn" onclick="toggleStage2('${id}')">+ 新增第二階段</button>
+
+      <!-- Stage 2 fields (hidden by default) -->
+      <div id="${id}-stage2" class="ws-stage2-wrap" style="display:none">
+        <div class="ws-stage-hdr"><span class="ws-stage-badge ws-s2">第二階段</span></div>
+        <div class="field">
+          <label class="fl">FS 存貨融資利率 (%)</label>
+          <div class="fi-row">
+            <input class="fi" type="number" id="${id}-fs-ws-rate-2" step="0.01" placeholder="例：2.0" oninput="liveUpdate('${id}')">
+            <span class="fi-unit">% / 年</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="fl">市場存貨融資利率 (%)</label>
+          <div class="fi-row">
+            <input class="fi" type="number" id="${id}-mkt-ws-rate-2" step="0.01" placeholder="例：3.5" oninput="liveUpdate('${id}')">
+            <span class="fi-unit">% / 年</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="fl">平均動用額度（萬元）</label>
+          <div class="fi-row">
+            <input class="fi" type="number" id="${id}-ws-credit-2" step="1" placeholder="例：2000" oninput="liveUpdate('${id}')">
+            <span class="fi-unit">萬元</span>
+          </div>
+          <div class="fhint">例：旺季額外動用、不同信用條件的額度</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEMO CAR FINANCE ── -->
+    <div>
+      <div class="subsec">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="17" r="1.5"/><circle cx="20" cy="17" r="1.5"/></svg>
+        Demo Car Finance 展示車融資
+      </div>
+
+      <div class="field">
+        <label class="fl">Demo 申辦台數</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-demo-units" step="1" min="1" placeholder="例：3" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">台</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">每台 Demo 融資金額（萬元）</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-demo-price" step="0.1" placeholder="例：200" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">萬元</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">申辦期數</label>
+        <div class="qbtns" id="${id}-qb-app"></div>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-app-term" min="1" max="84" placeholder="12" oninput="syncQB('${id}','app-term'); liveUpdate('${id}')">
+          <span class="fi-unit">期</span>
+        </div>
+        <div class="fhint">合約期數，決定月付款計算基礎</div>
+      </div>
+      <div class="field">
+        <label class="fl">實際持有期數</label>
+        <div class="qbtns" id="${id}-qb-hold"></div>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-hold-period" min="1" placeholder="1" oninput="syncQB('${id}','hold-period'); liveUpdate('${id}')">
+          <span class="fi-unit">期</span>
+        </div>
+        <div class="fhint">累計此期數之利息 = 融資成本</div>
+      </div>
+      <div class="field">
+        <label class="fl">FS Demo 融資利率 (%)</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-fs-demo-rate" step="0.01" value="3.99" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">市場 Demo 融資利率 (%)</label>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-mkt-demo-rate" step="0.01" placeholder="例：2.5" oninput="liveUpdate('${id}')">
+          <span class="fi-unit">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">FS 開辦費</label>
+        <div class="radio-row">
+          <label class="ropt"><input type="radio" name="${id}-fs-fee-type" value="per_unit" checked onchange="syncFeeLabel('${id}','fs'); liveUpdate('${id}')"> 單台</label>
+          <label class="ropt"><input type="radio" name="${id}-fs-fee-type" value="total" onchange="syncFeeLabel('${id}','fs'); liveUpdate('${id}')"> 總額</label>
+        </div>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-fs-fee-amt" step="100" placeholder="例：5000" oninput="liveUpdate('${id}')">
+          <span class="fi-unit" id="${id}-fs-fee-lbl">元/台</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">市場開辦費（預設 0）</label>
+        <div class="radio-row">
+          <label class="ropt"><input type="radio" name="${id}-mkt-fee-type" value="per_unit" checked onchange="syncFeeLabel('${id}','mkt'); liveUpdate('${id}')"> 單台</label>
+          <label class="ropt"><input type="radio" name="${id}-mkt-fee-type" value="total" onchange="syncFeeLabel('${id}','mkt'); liveUpdate('${id}')"> 總額</label>
+        </div>
+        <div class="fi-row">
+          <input class="fi" type="number" id="${id}-mkt-fee-amt" step="100" placeholder="0" oninput="liveUpdate('${id}')">
+          <span class="fi-unit" id="${id}-mkt-fee-lbl">元/台</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Live preview bar -->
+<div class="live-prev" id="${id}-live">
+  <div class="lp-item">
+    <div class="lp-label">WS 年省利息</div>
+    <div class="lp-val" id="${id}-lp-ws" style="color:var(--green)">—</div>
+    <div class="lp-sub">含所有階段合計</div>
+  </div>
+  <div class="lp-item">
+    <div class="lp-label">Demo 額外成本</div>
+    <div class="lp-val" id="${id}-lp-demo" style="color:var(--red)">—</div>
+    <div class="lp-sub">FS vs 市場（攤還法）</div>
+  </div>
+  <div class="lp-item">
+    <div class="lp-label">品牌淨效益</div>
+    <div class="lp-val" id="${id}-lp-net">—</div>
+    <div class="lp-sub" id="${id}-lp-net-sub"></div>
+  </div>
+</div>
+<div class="bc-footer"></div>`;
+}
+
+// ── Quick-term buttons ─────────────────────────────────────────
+function initQBtns(id) {
+  buildQBtns(id, 'app-term',   [12,24,36], 12);
+  buildQBtns(id, 'hold-period', [1,3,6,12], 1);
+}
+function buildQBtns(id, field, vals, def) {
+  const wrap = el(id+'-qb-'+(field==='app-term'?'app':'hold'));
+  if (!wrap) return;
+  wrap.innerHTML = vals.map(n =>
+    '<button class="qb'+(n===def?' on':'')+'" onclick="setQB(\''+id+'-'+field+'\','+n+',this)">'+n+'M</button>'
+  ).join('');
+  const inp = el(id+'-'+field);
+  if (inp && inp.value==='') inp.value = def;
+}
+function setQB(inputId, val, btn) {
+  const inp = el(inputId);
+  if (inp) inp.value = val;
+  btn.closest('.qbtns').querySelectorAll('.qb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const cid = inputId.match(/^(bc\d+)/)?.[1];
+  if (cid) liveUpdate(cid);
+}
+function syncQB(id, field) {
+  const inp = el(id+'-'+field);
+  if (!inp) return;
+  const cur = parseInt(inp.value);
+  const wrapId = id+'-qb-'+(field==='app-term'?'app':'hold');
+  const wrap = el(wrapId);
+  if (!wrap) return;
+  wrap.querySelectorAll('.qb').forEach(b => b.classList.toggle('on', parseInt(b.textContent)===cur));
+}
+function syncFeeLabel(id, side) {
+  const isPerUnit = radioVal(id+'-'+side+'-fee-type')==='per_unit';
+  const lbl = el(id+'-'+side+'-fee-lbl');
+  if (lbl) lbl.textContent = isPerUnit?'元/台':'元（總額）';
+}
+
+// ── #3: Two-stage WS toggle ────────────────────────────────────
+function toggleStage2(id) {
+  const stage2 = el(id+'-stage2');
+  const btn    = el(id+'-stage2-btn');
+  if (!stage2||!btn) return;
+  const hidden = stage2.style.display==='none';
+  if (hidden) {
+    stage2.style.display = 'block';
+    btn.textContent = '− 移除第二階段';
+    btn.style.color = 'var(--red)';
+    btn.style.borderColor = 'rgba(220,38,38,.3)';
+  } else {
+    stage2.style.display = 'none';
+    btn.textContent = '+ 新增第二階段';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    ['fs-ws-rate-2','mkt-ws-rate-2','ws-credit-2'].forEach(f => {
+      const inp = el(id+'-'+f); if (inp) inp.value='';
+    });
+  }
+  liveUpdate(id);
+}
+
+// ── Live preview ───────────────────────────────────────────────
+function liveUpdate(id) {
+  try {
+    const r = calcCard(id);
+    const fw = n => (n/10000).toFixed(1)+' 萬';
+    el(id+'-lp-ws').textContent   = fw(r.wsSaving);
+    el(id+'-lp-demo').textContent = fw(r.demoExtra);
+    const netEl  = el(id+'-lp-net');
+    const netSub = el(id+'-lp-net-sub');
+    netEl.textContent  = (r.net>=0?'+':'')+fw(r.net);
+    netEl.style.color  = r.net>=0?'var(--green)':'var(--red)';
+    if (netSub) netSub.textContent = r.net>=0?'✅ 有利':'⚠ 待優化';
+  } catch(e){}
+}
+
+// ── Run analysis ───────────────────────────────────────────────
+function runCalc() {
+  if (!cards.length) return;
+  const results = cards.map(c => ({...c, ...calcCard(c.id)}));
+  renderResults(results);
+}
+
+// ── Render results ─────────────────────────────────────────────
+function renderResults(results) {
+  const totWS   = results.reduce((s,r)=>s+r.wsSaving,  0);
+  const totDemo = results.reduce((s,r)=>s+r.demoExtra,  0);
+  const totNet  = totWS - totDemo;
+
+  el('r-ws').textContent   = W(totWS);
+  el('r-demo').textContent = W(totDemo);
+  const netEl  = el('r-net');
+  const netBar = el('r-net-bar');
+  const netLbl = el('r-net-lbl');
+  const netSub = el('r-net-sub');
+  const roiEl  = el('r-roi');
+  netEl.textContent    = WS(totNet);
+  netEl.style.color    = totNet>=0?'var(--green)':'var(--red)';
+  netBar.style.background = totNet>=0?'var(--green)':'var(--red)';
+  netLbl.style.color   = totNet>=0?'var(--green)':'var(--red)';
+  if (totDemo>0) {
+    const roi = (totNet/totDemo*100).toFixed(0);
+    roiEl.textContent = 'ROI: '+roi+'%';
+    roiEl.style.background = totNet>=0?'rgba(22,163,74,.1)':'rgba(220,38,38,.1)';
+    roiEl.style.color = totNet>=0?'var(--green)':'var(--red)';
+    roiEl.style.display = 'inline-block';
+    if (totWS>0) {
+      const pb = (totDemo/totWS*12).toFixed(1);
+      netSub.textContent = '回收期：'+pb+' 個月';
+      netSub.style.color = parseFloat(pb)<=12?'var(--green)':'var(--gold)';
+    }
+  } else {
+    roiEl.style.display = 'none';
+    netSub.textContent  = '年化 Wholesale 節省 − Demo 額外成本';
+    netSub.style.color  = '';
+  }
+
+  el('brand-results').innerHTML = results.map(r=>brandResultHTML(r)).join('');
+  el('insights').innerHTML = generateInsights(results,{totWS,totDemo,totNet}).join('');
+
+  // Detail table
+  el('dtbl-body').innerHTML = results.map(r => `
+<tr>
+  <td><span class="btag" style="background:${r.color}18;color:${r.color}"><span style="width:6px;height:6px;border-radius:50%;background:${r.color};display:inline-block"></span>${r.label}</span></td>
+  <td>${(r.wsCredit/10000).toFixed(0)} 萬</td>
+  <td>${PCT(r.fsWsRateAvg)}</td>
+  <td>${PCT(r.mktWsRateAvg)}</td>
+  <td class="v-g" style="font-weight:700">${W(r.wsSaving)}</td>
+  <td>${r.units} 台</td>
+  <td>${r.appTerm} 期</td>
+  <td>${r.holdPeriod} 期</td>
+  <td>${PCT(r.fsDemoR)}</td>
+  <td class="v-r">${W(r.fsInt)}</td>
+  <td>${W(r.mktInt)}</td>
+  <td>${WS(r.fsFee-r.mktFee)}</td>
+  <td class="v-r" style="font-weight:700">${W(r.demoExtra)}</td>
+  <td class="${r.net>=0?'v-g':'v-r'}" style="font-weight:800">${WS(r.net)}</td>
+</tr>`).join('');
+
+  if (results.length>1) {
+    el('dtbl-foot').innerHTML = `
+<tr class="tot-row">
+  <td>合計</td>
+  <td>${(results.reduce((s,r)=>s+r.wsCredit,0)/10000).toFixed(0)} 萬</td>
+  <td>—</td><td>—</td>
+  <td class="v-g">${W(totWS)}</td>
+  <td>${results.reduce((s,r)=>s+r.units,0)} 台</td>
+  <td>—</td><td>—</td><td>—</td>
+  <td class="v-r">${W(results.reduce((s,r)=>s+r.fsInt,0))}</td>
+  <td>${W(results.reduce((s,r)=>s+r.mktInt,0))}</td>
+  <td>${WS(results.reduce((s,r)=>s+(r.fsFee-r.mktFee),0))}</td>
+  <td class="v-r">${W(totDemo)}</td>
+  <td class="${totNet>=0?'v-g':'v-r'}">${WS(totNet)}</td>
+</tr>`;
+  } else {
+    el('dtbl-foot').innerHTML='';
+  }
+
+  renderBreakEven(results);
+  buildCharts(results, totWS, totDemo);
+  const resEl = el('results');
+  resEl.style.display = 'block';
+  resEl.classList.add('fade-in');
+  setTimeout(()=>resEl.classList.remove('fade-in'),400);
+  resEl.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Brand result expanded card ─────────────────────────────────
+function brandResultHTML(r) {
+  const netColor = r.net>=0?'var(--green)':'var(--red)';
+  const payback  = r.wsSaving>0?(r.demoExtra/r.wsSaving*12).toFixed(1):'∞';
+
+  const wsBreakdown = r.s2 ?
+    `<div style="font-size:10.5px;font-family:var(--mono);margin-top:8px;background:rgba(0,70,102,.03);border-radius:6px;padding:10px 12px">
+      <div style="margin-bottom:5px;font-weight:700;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">WS 兩階段明細</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <span class="ws-stage-badge ws-s1" style="font-size:8.5px">第一階段</span>
+          <div style="margin-top:5px">額度 ${(r.s1.credit/10000).toFixed(0)} 萬 ｜ FS ${PCT(r.s1.fsRate)} vs 市場 ${PCT(r.s1.mktRate)}</div>
+          <div>年省 <strong style="color:var(--green)">${W(r.s1.saving)}</strong></div>
+        </div>
+        <div>
+          <span class="ws-stage-badge ws-s2" style="font-size:8.5px">第二階段</span>
+          <div style="margin-top:5px">額度 ${(r.s2.credit/10000).toFixed(0)} 萬 ｜ FS ${PCT(r.s2.fsRate)} vs 市場 ${PCT(r.s2.mktRate)}</div>
+          <div>年省 <strong style="color:var(--green)">${W(r.s2.saving)}</strong></div>
+        </div>
+      </div>
+    </div>` :
+    `<div style="font-size:11px;font-family:var(--mono);margin-top:4px">
+      利率差 FS ${PCT(r.s1.fsRate)} vs 市場 ${PCT(r.s1.mktRate)}，年省 <strong style="color:var(--green)">${W(r.s1.saving)}</strong>
+    </div>`;
+
+  const amortTable = (rows, label, rateColor) => {
+    if (!rows.length) return '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">—</div>';
+    const totInt  = rows.reduce((s,rr)=>s+rr.interest, 0);
+    const totPrin = rows.reduce((s,rr)=>s+rr.principal, 0);
+    return `<div class="amort-side-label" style="background:${rateColor}15;color:${rateColor}">${label}</div>
+<table class="amort-table">
+<thead><tr><th>期</th><th>月付款</th><th>利息</th><th>本金</th><th>剩餘本金</th></tr></thead>
+<tbody>${rows.map(row=>`<tr>
+  <td>${row.m}</td>
+  <td>${FMT(Math.round(row.pmt))}</td>
+  <td style="color:${rateColor};font-weight:700">${FMT(Math.round(row.interest))}</td>
+  <td>${FMT(Math.round(row.principal))}</td>
+  <td>${FMT(Math.round(row.bal))}</td>
+</tr>`).join('')}
+<tr><td>合計</td><td>—</td><td style="color:${rateColor};font-weight:800">${FMT(Math.round(totInt))}</td><td>${FMT(Math.round(totPrin))}</td><td>—</td></tr>
+</tbody></table>`;
+  };
+
+  const aid = 'amort-'+r.id;
+  return `
+<div class="br-card">
+  <div class="br-header" onclick="toggleBrResult('${aid}')">
+    <span class="br-dot" style="background:${r.color}"></span>
+    <span class="br-name" style="color:${r.color}">${r.label}</span>
+    <span class="br-net" style="color:${netColor}">${WS(r.net)}</span>
+    <span class="br-chev" id="${aid}-chev">▼</span>
+  </div>
+  <div class="br-body" id="${aid}">
+    <div class="br-3col">
+      <div class="br-stat">
+        <div class="br-stat-label">WS 年省利息</div>
+        <div class="br-stat-val" style="color:var(--green)">${W(r.wsSaving)}</div>
+      </div>
+      <div class="br-stat">
+        <div class="br-stat-label">Demo 額外成本</div>
+        <div class="br-stat-val" style="color:var(--red)">${W(r.demoExtra)}</div>
+      </div>
+      <div class="br-stat">
+        <div class="br-stat-label">回收期</div>
+        <div class="br-stat-val" style="color:${parseFloat(payback)<=12?'var(--green)':'var(--gold)'}">${payback} 月</div>
+      </div>
+    </div>
+    <div class="br-divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:11.5px;font-family:var(--mono)">
+      <div>
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Wholesale Finance</div>
+        <div>總動用額度：<strong>${(r.wsCredit/10000).toFixed(0)} 萬</strong></div>
+        <div>年化加權 FS 利率：<strong>${PCT(r.fsWsRateAvg)}</strong></div>
+        <div>年化加權市場利率：<strong>${PCT(r.mktWsRateAvg)}</strong></div>
+        <div>FS 年利息：<span style="color:var(--red)">${W(r.fsWsInt)}</span></div>
+        <div>市場年利息：<span style="color:var(--gold)">${W(r.mktWsInt)}</span></div>
+        ${wsBreakdown}
+      </div>
+      <div>
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Demo Car Finance</div>
+        <div>${r.units} 台 × ${(r.demoTotal/r.units/10000).toFixed(0)} 萬 = <strong>${(r.demoTotal/10000).toFixed(0)} 萬</strong></div>
+        <div>申辦 ${r.appTerm} 期 ｜ 持有 ${r.holdPeriod} 期</div>
+        <div>FS Demo 利息：<span style="color:var(--red)">${W(r.fsInt)}</span></div>
+        <div>市場 Demo 利息：<span style="color:var(--gold)">${W(r.mktInt)}</span></div>
+        <div>FS 開辦費：${W(r.fsFee)} ｜ 市場開辦費：${W(r.mktFee)}</div>
+        <div>Demo 額外成本：<span style="color:var(--red);font-weight:800">${W(r.demoExtra)}</span></div>
+      </div>
+    </div>
+    <div class="br-divider"></div>
+    <div class="amort-toggle" onclick="toggleAmort('${aid}-amort')">
+      ▶ 展開 Demo 本息攤還明細（持有 ${r.holdPeriod} 期）
+    </div>
+    <div class="amort-section" id="${aid}-amort">
+      <div class="amort-2side">
+        <div>${amortTable(r.fsAmortRows,'FS Demo @ '+PCT(r.fsDemoR),'var(--red)')}</div>
+        <div>${amortTable(r.mktAmortRows,'市場 Demo @ '+PCT(r.mktDemoR),'var(--gold)')}</div>
+      </div>
+      <div style="margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--muted)">
+        ※ 月付款基於申辦期數 ${r.appTerm} 期計算；持有 ${r.holdPeriod} 期後提前清償，剩餘本金不計入融資成本。
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function toggleBrResult(id) {
+  const body = el(id);
+  const chev = el(id+'-chev');
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+function toggleAmort(id) {
+  const sec = el(id);
+  if (sec) sec.classList.toggle('open');
+}
+
+// ── Insights ───────────────────────────────────────────────────
+function generateInsights(results, {totWS, totDemo, totNet}) {
+  const ins = [];
+  const fw  = n => (n/10000).toFixed(1)+' 萬';
+
+  // Overall verdict
+  if (totNet>=0) {
+    const roi = totDemo>0?Math.round(totNet/totDemo*100):'∞';
+    ins.push(['g','✅','整體策略有利',
+      `Wholesale 年化節省 <span class="ins-hl">${fw(totWS)}</span>，Demo 額外投入 <span class="ins-hl">${fw(totDemo)}</span>，淨效益 <span class="ins-hl">+${fw(totNet)}</span>（ROI ${roi}%）。透過 FS Demo 強化財務配合比是合算的商業策略。`
+    ]);
+  } else {
+    ins.push(['o','⚠','整體效益待優化',
+      `Demo 額外投入（<span class="ins-hl">${fw(totDemo)}</span>）高於 WS 年化節省（<span class="ins-hl">${fw(totWS)}</span>），淨效益 <span class="ins-hl">${fw(totNet)}</span>。建議縮短 Demo 持有期數、增加 WS 動用額度，或重議 FS Demo 利率。`
+    ]);
+  }
+
+  // Payback
+  if (totWS>0 && totDemo>0) {
+    const pb   = (totDemo/totWS*12).toFixed(1);
+    const pbN  = parseFloat(pb);
+    const type = pbN<=6?'g':pbN<=12?'b':'o';
+    ins.push([type,'⏱','投資回收期',
+      `以年化 WS 節省 <span class="ins-hl">${fw(totWS)}</span> 計，Demo 投入 <span class="ins-hl">${fw(totDemo)}</span> 預計 <span class="ins-hl">${pb} 個月</span>回收。`+
+      (pbN<=6?'回收速度快（半年內），策略積極有效。':pbN<=12?'回收期一年內，效益穩健正向。':'回收期超過一年，建議檢視 Demo 台數或持有期數是否過高。')
+    ]);
+  }
+
+  // Per-unit economics
+  const totalUnits = results.reduce((s,r)=>s+r.units,0);
+  if (totalUnits>0 && totWS>0) {
+    const saving   = totWS/totalUnits;
+    const cost     = totDemo/totalUnits;
+    const net1     = saving-cost;
+    ins.push(['b','🚗','每台 Demo 邊際效益',
+      `合計 <span class="ins-hl">${totalUnits} 台</span> Demo，每台帶動年化 WS 節省約 <span class="ins-hl">${fw(saving)}</span>，每台額外成本約 <span class="ins-hl">${fw(cost)}</span>，每台淨效益 <span class="ins-hl" style="color:${net1>=0?'var(--green)':'var(--red)'}">${net1>=0?'+':''}${fw(net1)}</span>。`
+    ]);
+  }
+
+  // Two-stage WS insight
+  const hasStage2 = results.some(r=>r.s2);
+  if (hasStage2) {
+    const s2Total = results.filter(r=>r.s2).reduce((s,r)=>s+r.s2.saving,0);
+    ins.push(['b','🔄','雙階段 WS 組合效益',
+      `採用雙階段動用額度設定之品牌，第二階段額外年省 <span class="ins-hl">${fw(s2Total)}</span>。這反映了不同信用條件或季節性動用水位的差異化定價優勢，整體加權利率差優於單一階段估算。`
+    ]);
+  }
+
+  // Per-brand ranking (multi-brand)
+  if (results.length>1) {
+    const sorted = [...results].sort((a,b)=>b.net-a.net);
+    ins.push(['b','🏆','品牌效益排名',
+      sorted.map((r,i)=>`<strong>${i+1}. ${r.label}</strong>（淨效益 ${r.net>=0?'+':''}${fw(r.net)}，回收 ${r.wsSaving>0?(r.demoExtra/r.wsSaving*12).toFixed(1):'∞'} 月）`)
+        .join('　→　')
+    ]);
+  }
+
+  // Anomaly: FS WS rate >= market
+  results.forEach(r=>{
+    if (r.wsSaving<=0) {
+      ins.push(['r','🚨',r.label+' — Wholesale 利率條件異常',
+        `FS 存貨融資加權利率（${PCT(r.fsWsRateAvg)}）未優於市場（${PCT(r.mktWsRateAvg)}），WS 節省為零。Demo 投入將無對應效益回補，建議先確認利率談判結果。`
+      ]);
+    }
+  });
+
+  const typeMap = {g:'ins-g',o:'ins-o',r:'ins-r',b:'ins-b'};
+  return ins.map(([type,icon,title,body])=>
+    `<div class="insight-card ${typeMap[type]||'ins-b'}">
+       <div class="ins-icon">${icon}</div>
+       <div><div class="ins-title">${title}</div><div class="ins-body">${body}</div></div>
+     </div>`
+  );
+}
+
+// ── Break-even WS Rate Analysis ───────────────────────────────
+function renderBreakEven(results) {
+  const grid = el('be-grid');
+  if (!grid) return;
+  let html = results.map(r => beCardHTML(r)).join('');
+  // Consolidated card for multi-brand
+  if (results.length > 1) {
+    const totCredit = results.reduce((s,r) => s+r.wsCredit,  0);
+    const totDemo   = results.reduce((s,r) => s+r.demoExtra, 0);
+    const totFsInt  = results.reduce((s,r) => s+r.fsWsInt,   0);
+    const totMktInt = results.reduce((s,r) => s+r.mktWsInt,  0);
+    html += beCardHTML({
+      label:'跨品牌合計',
+      color:'#004666',
+      wsCredit:    totCredit,
+      fsWsRateAvg: totCredit>0 ? totFsInt /totCredit*100 : 0,
+      mktWsRateAvg:totCredit>0 ? totMktInt/totCredit*100 : 0,
+      fsWsInt:     totFsInt,
+      mktWsInt:    totMktInt,
+      demoExtra:   totDemo
+    });
+  }
+  grid.innerHTML = html;
+}
+
+function beCardHTML(r) {
+  const { label, color, wsCredit, mktWsRateAvg:mktRate, fsWsRateAvg:fsRate, demoExtra } = r;
+  if (!wsCredit || wsCredit<=0 || !demoExtra || demoExtra<=0 || !mktRate) {
+    return `<div class="be-card">
+      <div class="be-brand" style="color:${color}">
+        <span style="width:8px;height:8px;background:${color};border-radius:50%;display:inline-block"></span>${label}
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">資料不足，無法計算</div>
+    </div>`;
+  }
+
+  const reqDrop = demoExtra / wsCredit * 100;   // % points needed
+  const beRate  = mktRate - reqDrop;             // break-even FS WS rate
+  const isGood  = fsRate <= beRate;              // current FS already below break-even
+  const buffer  = beRate - fsRate;              // positive = comfortable buffer
+
+  // Track scale: 0 → mktRate × 1.15
+  const tMax = mktRate * 1.15;
+  const pBe  = Math.max(0, Math.min(97, beRate /tMax*100));
+  const pFs  = Math.max(0, Math.min(97, fsRate /tMax*100));
+  const pMkt = Math.min(97, mktRate/tMax*100);
+
+  const track = beRate > 0 ? `
+<div class="be-track-wrap">
+  <div class="be-track-bar">
+    <div class="be-fill-safe" style="width:${pBe.toFixed(1)}%"></div>
+    <div class="be-fill-warn" style="left:${pBe.toFixed(1)}%;width:${Math.max(0,pMkt-pBe).toFixed(1)}%"></div>
+  </div>
+  <div class="be-vline" style="left:${pBe.toFixed(1)}%;background:var(--gold)"></div>
+  <div class="be-lbl-below" style="left:${pBe.toFixed(1)}%;color:var(--gold)">BE ${PCT(beRate)}</div>
+  <div class="be-circ" style="left:${pFs.toFixed(1)}%;background:${isGood?'var(--green)':'var(--red)'}"></div>
+  <div class="be-lbl-above" style="left:${pFs.toFixed(1)}%;color:${isGood?'var(--green)':'var(--red)'}">FS ${PCT(fsRate)}</div>
+  <div class="be-vline" style="left:${pMkt.toFixed(1)}%;background:rgba(0,70,102,.25);width:1.5px"></div>
+  <div class="be-lbl-below" style="left:${pMkt.toFixed(1)}%;color:var(--muted)">市場 ${PCT(mktRate)}</div>
+</div>` :
+`<div style="padding:9px 12px;background:var(--red-l);border-radius:6px;font-size:10.5px;font-family:var(--mono);color:var(--red);margin:10px 0;line-height:1.55">
+  ⚠ Demo 投入成本超過 WS 動用額度的可節省上限，即使 FS 利率降至 0% 亦無法打平。建議增加 WS 動用額度或減少 Demo 台數。
+</div>`;
+
+  return `<div class="be-card">
+  <div class="be-brand" style="color:${color}">
+    <span style="width:8px;height:8px;background:${color};border-radius:50%;display:inline-block"></span>${label}
+  </div>
+  <div class="be-3rates">
+    <div><div class="be-r-lbl">市場 WS 利率</div><div class="be-r-val" style="color:var(--t2)">${PCT(mktRate)}</div></div>
+    <div><div class="be-r-lbl">損益平衡 FS 利率</div><div class="be-r-val" style="color:var(--gold)">${beRate>0?PCT(beRate):'—'}</div></div>
+    <div><div class="be-r-lbl">目前 FS 利率</div><div class="be-r-val" style="color:${isGood?'var(--green)':'var(--red)'}">${PCT(fsRate)}</div></div>
+  </div>
+  <div class="be-meta">必要利率降幅：<strong>${reqDrop.toFixed(3)} %</strong>（Demo 額外成本 ${W(demoExtra)} ÷ WS 額度 ${(wsCredit/10000).toFixed(0)} 萬）</div>
+  ${track}
+  <div class="be-verdict ${isGood?'be-verdict-g':'be-verdict-r'}">
+    ${isGood
+      ? `✅ FS 利率（${PCT(fsRate)}）已低於損益平衡點（${PCT(beRate)}），緩衝空間 <strong>${buffer.toFixed(3)}%</strong>`
+      : `❌ FS 利率（${PCT(fsRate)}）高於損益平衡點（${PCT(beRate)}），尚需再降 <strong>${(-buffer).toFixed(3)}%</strong> 才合算`}
+  </div>
+</div>`;
+}
+
+// ── Charts ─────────────────────────────────────────────────────
+function buildCharts(results, totWS, totDemo) {
+  if (_charts.bar)   { _charts.bar.destroy();   _charts.bar=null; }
+  if (_charts.donut) { _charts.donut.destroy(); _charts.donut=null; }
+  const mono = "'JetBrains Mono'";
+
+  _charts.bar = new Chart(el('chart-bar').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels: results.map(r=>r.label),
+      datasets:[
+        {label:'WS 年省利息',   data:results.map(r=>+(r.wsSaving/10000).toFixed(2)),  backgroundColor:'rgba(22,163,74,.75)',  borderColor:'#16a34a', borderWidth:1.5, borderRadius:5},
+        {label:'Demo 額外成本', data:results.map(r=>+(r.demoExtra/10000).toFixed(2)), backgroundColor:'rgba(220,38,38,.65)', borderColor:'#dc2626', borderWidth:1.5, borderRadius:5},
+        {label:'淨效益',        data:results.map(r=>+(r.net/10000).toFixed(2)),
+          backgroundColor:results.map(r=>r.net>=0?'rgba(0,70,102,.75)':'rgba(220,38,38,.35)'),
+          borderColor:results.map(r=>r.net>=0?'#004666':'#dc2626'),
+          borderWidth:1.5, borderRadius:5}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{font:{family:mono,size:10},boxWidth:12,padding:12}},
+        tooltip:{callbacks:{label:ctx=>'  '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)+' 萬元'}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:mono,size:11}}},
+        y:{grid:{color:'rgba(0,70,102,.06)'},ticks:{font:{family:mono,size:10},callback:v=>v+' 萬'}}
+      }
+    }
+  });
+
+  const totNet = totWS-totDemo;
+  _charts.donut = new Chart(el('chart-donut').getContext('2d'), {
+    type:'doughnut',
+    data:{
+      labels:['WS 年省利息','Demo 額外成本'],
+      datasets:[{
+        data:[+(totWS/10000).toFixed(2),+(totDemo/10000).toFixed(2)],
+        backgroundColor:['rgba(22,163,74,.75)','rgba(220,38,38,.65)'],
+        borderColor:['#16a34a','#dc2626'],
+        borderWidth:2, hoverOffset:8
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'66%',
+      plugins:{
+        legend:{position:'bottom',labels:{font:{family:mono,size:10},boxWidth:12,padding:12}},
+        tooltip:{callbacks:{label:ctx=>'  '+ctx.label+': '+ctx.parsed.toFixed(2)+' 萬元'}}
+      }
+    },
+    plugins:[{
+      id:'center-text',
+      afterDraw(chart){
+        const {ctx,chartArea:{left,top,right,bottom}}=chart;
+        const cx=(left+right)/2, cy=(top+bottom)/2;
+        ctx.save();
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font='bold 14px '+mono;
+        ctx.fillStyle=totNet>=0?'#16a34a':'#dc2626';
+        ctx.fillText((totNet>=0?'+':'')+(totNet/10000).toFixed(1)+' 萬',cx,cy-8);
+        ctx.font='600 9px '+mono;
+        ctx.fillStyle='#a8adb3';
+        ctx.fillText('淨效益',cx,cy+9);
+        ctx.restore();
+      }
+    }]
+  });
+}
+</script>
+</body>
+</html>

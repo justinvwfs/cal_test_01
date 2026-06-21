@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>保有台數確認 — BSD Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f2f2f2;--bg-white:#fff;--bg-card:#fff;
+  --border:rgba(0,70,102,.10);--text:#00253e;--text-secondary:#4c5356;--text-muted:#a8adb3;
+  --accent:#004666;--accent2:#2b9ab5;--success:#95a844;--danger:#ff4963;--warn:#d8aa00;
+  --radius:8px;--radius-sm:8px;
+  --shadow-sm:0 2px 12px rgba(0,37,62,.08);--shadow:0 2px 12px rgba(0,37,62,.08);--shadow-lg:0 8px 28px rgba(0,37,62,.12);
+  --font:'Plus Jakarta Sans','Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace;
+  --petrol:#004666;--petrol-dark:#00253e;--petrol-light:#c6dfe7;--cyan:#2b9ab5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background-color:#f2f2f2;background-image:radial-gradient(rgba(0,70,102,0.086) 1.1px,transparent 1.1px);background-size:24px 24px;color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before,body::after{display:none}
+
+/* TOP BAR — Velocity */
+.topbar{position:sticky;top:0;z-index:100;height:60px;background:#00253e;border-bottom:none;overflow:hidden}
+.topbar-inner{max-width:1200px;margin:0 auto;height:100%;display:flex;align-items:center;padding:0 28px;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;position:relative;z-index:2}
+.brand-logo{width:34px;height:34px;background:#c6dfe7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:none}
+.brand-name{font-weight:800;font-size:.95rem;letter-spacing:-.025em;color:#fff}
+.brand-sub{font-size:7.5px;color:rgba(255,255,255,.3);font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:8px;position:relative;z-index:2}
+.pro-badge{font-family:var(--mono);font-size:10px;color:#c6dfe7;background:rgba(43,154,181,.14);border:1px solid #2b9ab5;padding:5px 13px;border-radius:6px;font-weight:700}
+.back-link{font-size:10px;color:rgba(255,255,255,.45);text-decoration:none;padding:5px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;font-family:var(--mono);font-weight:700;transition:all .2s}
+.back-link:hover{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.22)}
+.velo-top-svg{position:absolute;top:0;right:0;width:480px;height:100%;pointer-events:none}
+
+/* LAYOUT */
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+
+/* HERO — Velocity */
+.hero{background:linear-gradient(135deg,#00253e 58%,transparent 58%),repeating-linear-gradient(135deg,transparent,transparent 11px,rgba(43,154,181,.055) 11px,rgba(43,154,181,.055) 12.5px),#00253e;border-radius:8px;padding:18px 24px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,37,62,.18)}
+.hero::before,.hero::after{display:none}
+.hero-eye{font-family:var(--mono);font-size:9px;color:rgba(198,223,231,.6);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;position:relative;z-index:1}
+.hero-h{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px;position:relative;z-index:1}
+.hero-sub{font-size:11px;color:rgba(255,255,255,.42);font-family:var(--mono);position:relative;z-index:1}
+
+/* CARDS */
+.card{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:none;border-radius:8px;padding:22px;box-shadow:0 2px 12px rgba(0,37,62,.08);margin-bottom:18px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#2b9ab5;border-radius:8px 8px 0 0}
+.card-h{font-size:.85rem;font-weight:800;letter-spacing:-.01em;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:#00253e}
+.card-h .ico{font-size:1rem}
+
+/* SETUP CARD */
+.setup-row{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.setup-field{flex:1;min-width:280px}
+.setup-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;font-family:var(--mono)}
+.setup-input{width:100%;padding:10px 14px;border-radius:6px;border:1.5px solid rgba(0,70,102,.15);background:#f2f2f2;font-family:var(--mono);font-size:12px;color:#00253e;outline:none;transition:border-color .2s}
+.setup-input:focus{border-color:#2b9ab5;box-shadow:0 0 0 3px rgba(43,154,181,.09)}
+.setup-input.ok{border-color:#95a844}
+.setup-hint{font-size:11px;color:var(--text-muted);margin-top:5px;line-height:1.5}
+.setup-hint a{color:var(--accent);text-decoration:none}
+.setup-hint a:hover{text-decoration:underline}
+
+/* STATUS PILL */
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.status-pill.none{background:#f2f2f2;color:var(--text-muted);border:1px solid rgba(0,70,102,.1)}
+.status-pill.ready{background:rgba(149,168,68,.1);color:#95a844;border:1px solid rgba(149,168,68,.25)}
+.status-pill.err{background:rgba(255,73,99,.07);color:#ff4963;border:1px solid rgba(255,73,99,.2)}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.dot.pulse{animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* INPUT */
+.input-grid{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+@media(max-width:640px){.input-grid{grid-template-columns:1fr}}
+.kw-textarea{width:100%;height:240px;padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--mono);font-size:13px;color:var(--text);outline:none;resize:vertical;line-height:1.7;transition:border-color .2s}
+.kw-textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(13,148,136,.09)}
+.input-meta{font-size:11px;color:var(--text-muted);margin-top:6px;font-family:var(--mono)}
+.input-meta span{color:var(--accent2);font-weight:700}
+
+.input-controls{display:flex;flex-direction:column;gap:10px;width:180px;padding-top:24px}
+@media(max-width:640px){.input-controls{width:100%;flex-direction:row;flex-wrap:wrap;padding-top:0}}
+
+.btn{padding:10px 14px;border-radius:8px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#004666 56%,transparent 56%),repeating-linear-gradient(135deg,transparent,transparent 8px,rgba(255,255,255,.08) 8px,rgba(255,255,255,.08) 9.5px),#004666;color:#fff;box-shadow:none}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,70,102,.28)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-secondary{background:#fff;color:var(--text-secondary);border:1px solid rgba(0,70,102,.15)}
+.btn-secondary:hover{border-color:#2b9ab5;color:#2b9ab5}
+.btn-danger{background:rgba(255,73,99,.06);color:var(--danger);border:1px solid rgba(255,73,99,.2)}
+.btn-danger:hover{background:rgba(255,73,99,.12)}
+.btn-sm{padding:7px 12px;font-size:12px}
+
+/* PROGRESS */
+.progress-wrap{display:none;margin-bottom:18px}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-txt{font-size:12px;font-family:var(--mono);color:var(--text-secondary)}
+.progress-count{font-size:12px;font-family:var(--mono);color:var(--text-muted)}
+.progress-bar{height:6px;background:rgba(0,70,102,.06);border-radius:50px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#004666,#2b9ab5);border-radius:50px;transition:width .3s ease;width:0%}
+.progress-log{margin-top:10px;max-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.log-item{font-size:11px;font-family:var(--mono);color:var(--text-muted);padding:2px 0}
+.log-item.ok{color:var(--success)}
+.log-item.err{color:var(--danger)}
+.log-item.running{color:var(--accent2)}
+
+/* RESULTS */
+.results-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.results-title{font-size:.85rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.results-count{font-family:var(--mono);font-size:11px;background:rgba(149,168,68,.1);border:1px solid rgba(149,168,68,.25);color:#95a844;padding:3px 10px;border-radius:6px;font-weight:700}
+.export-row{display:flex;gap:8px;flex-wrap:wrap}
+
+.table-scroll{overflow-x:auto;border-radius:8px;border:1px solid rgba(0,70,102,.08)}
+.results-table{width:100%;border-collapse:collapse;font-size:13px}
+.results-table th{background:linear-gradient(135deg,#00253e 45%,transparent 45%),repeating-linear-gradient(135deg,transparent,transparent 6px,rgba(255,255,255,.04) 6px,rgba(255,255,255,.04) 7.5px),#00253e;padding:8px 14px;text-align:left;font-size:8.5px;font-weight:700;color:rgba(255,255,255,.72);letter-spacing:.1em;text-transform:uppercase;border-bottom:none;white-space:nowrap;font-family:var(--mono)}
+.results-table td{padding:9px 14px;border-bottom:1px solid rgba(0,70,102,.04);vertical-align:top;line-height:1.5}
+.results-table tr:last-child td{border-bottom:none}
+.results-table tr:nth-child(even) td{background:#f7f9fb}
+.results-table tr:hover td{background:rgba(43,154,181,.04)}
+.td-name{font-weight:700;color:#00253e}
+.td-org{font-size:12px;color:var(--text-secondary)}
+.td-num{font-family:var(--mono);font-weight:700;color:#2b9ab5;text-align:right}
+.td-num.zero{color:var(--text-muted);font-weight:400}
+.td-detail a{font-size:11px;color:#004666;text-decoration:none;font-family:var(--mono)}
+.td-detail a:hover{text-decoration:underline;color:#2b9ab5}
+.kw-tag{display:inline-block;font-size:10px;background:rgba(149,168,68,.1);color:#95a844;border:1px solid rgba(149,168,68,.25);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-weight:700;margin-bottom:2px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-ico{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty-txt{font-size:13px}
+
+/* CORSBANNER */
+.cors-banner{display:none;background:#fff7ed;border:1px solid rgba(217,119,6,.2);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:18px}
+.cors-banner h4{font-size:.9rem;font-weight:800;color:#92400e;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.cors-banner p{font-size:12px;color:#78350f;line-height:1.65}
+.cors-banner code{background:rgba(217,119,6,.1);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px}
+
+/* GAS GUIDE */
+.guide-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:14px 0;border-top:1px solid var(--border);margin-top:14px;font-size:12px;font-weight:700;color:var(--text-secondary);user-select:none}
+.guide-toggle:hover{color:var(--accent)}
+.guide-toggle .arrow{font-size:10px;transition:transform .2s}
+.guide-toggle.open .arrow{transform:rotate(90deg)}
+.guide-body{display:none;padding-top:14px}
+.guide-body.open{display:block}
+.guide-step{display:flex;gap:12px;margin-bottom:14px}
+.guide-num{width:24px;height:24px;border-radius:50%;background:#004666;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);margin-top:1px}
+.guide-txt{font-size:12px;color:var(--text-secondary);line-height:1.65}
+.guide-txt strong{color:var(--text)}
+.guide-txt code{font-family:var(--mono);font-size:11px;background:rgba(15,23,42,.05);padding:1px 6px;border-radius:4px}
+.guide-txt a{color:var(--accent)}
+
+.code-block{background:#0f1c2e;border-radius:8px;padding:16px;margin:10px 0;overflow-x:auto;position:relative}
+.code-block pre{font-family:var(--mono);font-size:11px;color:#e2e8f0;line-height:1.6;white-space:pre}
+.copy-code-btn{position:absolute;top:10px;right:10px;padding:4px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.7);font-size:10px;font-family:var(--mono);cursor:pointer;transition:all .2s}
+.copy-code-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#00253e;color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--mono);opacity:0;transition:all .3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .wrap{padding:16px 12px}
+  .hero{padding:20px 18px}
+  .hero-h{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <svg class="velo-top-svg" viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="23" y1="52" x2="42" y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.40" stroke-linecap="round"/>
+    <line x1="46" y1="52" x2="65" y2="7" stroke="#2b9ab5" stroke-width="2.5" opacity="0.362" stroke-linecap="round"/>
+    <line x1="69" y1="52" x2="88" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.25" stroke-linecap="round"/>
+    <line x1="92" y1="52" x2="111" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.21" stroke-linecap="round"/>
+    <line x1="115" y1="52" x2="134" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.17" stroke-linecap="round"/>
+    <line x1="138" y1="52" x2="157" y2="7" stroke="#c6dfe7" stroke-width="1.1" opacity="0.13" stroke-linecap="round"/>
+  </svg>
+  <div class="topbar-inner">
+    <a class="brand" href="../../index.html">
+      <div class="brand-logo">🚗</div>
+      <div>
+        <div class="brand-name">BSD <em>Pro</em></div>
+        <div class="brand-sub">INTERNAL TOOLS</div>
+      </div>
+    </a>
+    <div class="topbar-end">
+      <span class="pro-badge">PRO</span>
+      <a class="back-link" href="../../index.html">← 返回工具清單</a>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="wrap">
+<div class="hero">
+  <div class="hero-eye">Fleet Inventory Check · 監理服務網查詢</div>
+  <div class="hero-h">🚘 保有台數確認</div>
+  <div class="hero-sub">批量查詢租賃公司保有車輛台數 — 最多支援 20 組關鍵字一次執行</div>
+</div>
+
+<!-- CORS WARNING -->
+<div class="cors-banner" id="cors-banner">
+  <h4>⚠️ 跨來源限制（CORS）</h4>
+  <p>監理服務網不允許直接從瀏覽器跨域抓取資料。請依下方說明設定 <strong>Google Apps Script Proxy</strong>，並將網址填入設定欄位後再執行查詢。</p>
+</div>
+
+<!-- SETUP -->
+<div class="card">
+  <div class="card-h"><span class="ico">⚙️</span> 連線設定</div>
+  <div class="setup-row">
+    <div class="setup-field" style="flex:2">
+      <div class="setup-label">Google Apps Script Proxy 網址</div>
+      <input type="url" id="proxyUrl" class="setup-input" placeholder="https://script.google.com/macros/s/XXXXXX/exec" autocomplete="off">
+      <div class="setup-hint">
+        尚未設定？請展開下方說明，5 分鐘完成部署。
+        <span id="proxy-status" class="status-pill none" style="margin-left:8px"><span class="dot"></span> 未設定</span>
+      </div>
+    </div>
+    <div class="setup-field" style="max-width:200px">
+      <div class="setup-label">查詢逾時（秒）</div>
+      <input type="number" id="timeoutSec" class="setup-input" value="20" min="5" max="60">
+      <div class="setup-hint">每組關鍵字的等待上限</div>
+    </div>
+  </div>
+
+  <!-- GAS SETUP GUIDE -->
+  <div class="guide-toggle" id="guideToggle" onclick="toggleGuide()">
+    <span class="arrow">▶</span>
+    <span>Google Apps Script Proxy 設定教學（展開查看）</span>
+  </div>
+  <div class="guide-body" id="guideBody">
+    <div class="guide-step">
+      <div class="guide-num">1</div>
+      <div class="guide-txt">前往 <a href="https://script.google.com" target="_blank">script.google.com</a>，點擊「新增專案」</div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">2</div>
+      <div class="guide-txt">刪除預設內容，貼上以下程式碼：</div>
+    </div>
+    <div class="code-block">
+      <button class="copy-code-btn" onclick="copyGasCode()">複製</button>
+      <pre id="gas-code">function doGet(e) {
+  var companyName = e.parameter.q || '';
+  var url = 'https://www.mvdis.gov.tw/m3-emv-mk3/rentalVehicle/query';
+
+  // Step 1: GET to grab session cookies
+  var getOpts = {
+    method: 'get',
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120'
+    }
+  };
+  var cookies = '';
+  try {
+    var getResp = UrlFetchApp.fetch(url, getOpts);
+    var rawCookies = getResp.getHeaders()['Set-Cookie'];
+    if (rawCookies) {
+      if (typeof rawCookies === 'string') {
+        cookies = rawCookies.split(';')[0];
+      } else if (Array.isArray(rawCookies)) {
+        cookies = rawCookies.map(function(c){ return c.split(';')[0]; }).join('; ');
+      }
+    }
+  } catch(e) {}
+
+  // Step 2: POST with form data
+  var postOpts = {
+    method: 'post',
+    contentType: 'application/x-www-form-urlencoded',
+    payload: 'companyName=' + encodeURIComponent(companyName) + '&pageNum=1&pageSize=100',
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120',
+      'Referer': url,
+      'Cookie': cookies
+    }
+  };
+
+  try {
+    var resp = UrlFetchApp.fetch(url, postOpts);
+    var html = resp.getContentText('UTF-8');
+    var result = { ok: true, html: html, keyword: companyName };
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    var errResult = { ok: false, error: err.toString(), keyword: companyName };
+    return ContentService
+      .createTextOutput(JSON.stringify(errResult))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">3</div>
+      <div class="guide-txt">點擊上方選單「部署」→「新增部署作業」，類型選 <strong>「網頁應用程式」</strong>，執行身份選 <strong>「我」</strong>，存取權選 <strong>「所有人」</strong>，點擊「部署」</div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">4</div>
+      <div class="guide-txt">複製部署完成後出現的 <strong>網頁應用程式網址</strong>（格式：<code>https://script.google.com/macros/s/XXXXX/exec</code>），貼入上方「Proxy 網址」欄位</div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">5</div>
+      <div class="guide-txt">首次執行時 Google 會要求授權，請點選授權並同意。之後的查詢不需重複授權。</div>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT -->
+<div class="card">
+  <div class="card-h"><span class="ico">📋</span> 批量輸入關鍵字</div>
+  <div class="input-grid">
+    <div>
+      <textarea id="kwInput" class="kw-textarea" placeholder="請輸入公司名稱關鍵字，每行一筆
+可直接從 Excel 單欄複製貼上
+
+例如：
+愛旺
+格上
+中租
+和運
+豐群"></textarea>
+      <div class="input-meta">已輸入 <span id="kwCount">0</span> 組關鍵字（上限 20 組）</div>
+    </div>
+    <div class="input-controls">
+      <button class="btn btn-primary" id="runBtn" onclick="startQuery()">
+        🔍 執行查詢
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="clearInput()">
+        清除輸入
+      </button>
+      <button class="btn btn-danger btn-sm" id="stopBtn" onclick="stopQuery()" style="display:none">
+        ⏹ 中止查詢
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="loadSample()">
+        載入範例
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap" id="progressWrap">
+  <div class="card">
+    <div class="progress-label">
+      <span class="progress-txt" id="progressTxt">準備中…</span>
+      <span class="progress-count" id="progressCount">0 / 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-log" id="progressLog"></div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="card" id="resultsCard" style="display:none">
+  <div class="results-hdr">
+    <div class="results-title">
+      <span>🗂</span> 查詢結果
+      <span class="results-count" id="resultsCount">0 筆</span>
+    </div>
+    <div class="export-row">
+      <button class="btn btn-secondary btn-sm" onclick="copyTable()">📋 複製（可貼到 Excel）</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportExcel()">📥 匯出 Excel</button>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table class="results-table" id="resultsTable">
+      <thead>
+        <tr>
+          <th>搜尋關鍵字</th>
+          <th>公司名稱</th>
+          <th>管轄單位</th>
+          <th>營業種類</th>
+          <th style="text-align:right">短租小客車數</th>
+          <th style="text-align:right">短租小客貨車數</th>
+          <th style="text-align:right">短租小貨車數</th>
+          <th>詳細資料</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-ico">🔍</div>
+    <div class="empty-txt">查無符合的資料</div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Auth guard ───────────────────────────────────────────────
+(function(){
+  if(sessionStorage.getItem('bsd_pro_auth')!=='1'){
+    window.location.href='../../index.html';
+  }
+})();
+
+// ─── State ────────────────────────────────────────────────────
+let allResults = [];
+let isRunning  = false;
+let shouldStop = false;
+
+// ─── Proxy status ─────────────────────────────────────────────
+const proxyInput = document.getElementById('proxyUrl');
+const proxyStatus = document.getElementById('proxy-status');
+proxyInput.addEventListener('input', function(){
+  const v = this.value.trim();
+  if(v && v.startsWith('https://script.google.com')){
+    this.classList.add('ok');
+    proxyStatus.className = 'status-pill ready';
+    proxyStatus.innerHTML = '<span class="dot"></span> 已設定';
+    localStorage.setItem('fleet_proxy_url', v);
+  } else if(v){
+    this.classList.remove('ok');
+    proxyStatus.className = 'status-pill err';
+    proxyStatus.innerHTML = '<span class="dot"></span> 格式不符';
+  } else {
+    this.classList.remove('ok');
+    proxyStatus.className = 'status-pill none';
+    proxyStatus.innerHTML = '<span class="dot"></span> 未設定';
+  }
+});
+
+// Restore saved proxy URL
+(function(){
+  const saved = localStorage.getItem('fleet_proxy_url');
+  if(saved){ proxyInput.value = saved; proxyInput.dispatchEvent(new Event('input')); }
+})();
+
+// ─── Keyword counter ──────────────────────────────────────────
+const kwInput = document.getElementById('kwInput');
+const kwCount = document.getElementById('kwCount');
+kwInput.addEventListener('input', function(){
+  const kws = parseKeywords(this.value);
+  kwCount.textContent = kws.length;
+  if(kws.length > 20) kwCount.style.color = 'var(--danger)';
+  else kwCount.style.color = 'var(--accent2)';
+});
+
+function parseKeywords(raw){
+  return raw.split(/[\n\r\t,，、;；]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .slice(0, 20);
+}
+
+function loadSample(){
+  kwInput.value = '愛旺\n格上\n中租\n和運\n豐群';
+  kwInput.dispatchEvent(new Event('input'));
+}
+
+function clearInput(){
+  kwInput.value = '';
+  kwInput.dispatchEvent(new Event('input'));
+}
+
+// ─── Guide toggle ─────────────────────────────────────────────
+function toggleGuide(){
+  const btn  = document.getElementById('guideToggle');
+  const body = document.getElementById('guideBody');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// ─── Copy GAS code ────────────────────────────────────────────
+function copyGasCode(){
+  const code = document.getElementById('gas-code').textContent;
+  navigator.clipboard.writeText(code).then(()=>showToast('程式碼已複製'));
+}
+
+// ─── Main query flow ──────────────────────────────────────────
+async function startQuery(){
+  if(isRunning) return;
+  const proxyUrl = proxyInput.value.trim();
+  const keywords = parseKeywords(kwInput.value);
+  const timeoutMs = (parseInt(document.getElementById('timeoutSec').value)||20) * 1000;
+
+  if(keywords.length === 0){ showToast('請先輸入關鍵字'); return; }
+  if(keywords.length > 20){ showToast('最多支援 20 組關鍵字'); return; }
+  if(!proxyUrl){
+    document.getElementById('cors-banner').style.display = 'block';
+    showToast('請先設定 Proxy 網址');
+    return;
+  }
+
+  isRunning   = true;
+  shouldStop  = false;
+  allResults  = [];
+
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('stopBtn').style.display = '';
+  document.getElementById('progressWrap').style.display = '';
+  document.getElementById('resultsCard').style.display  = 'none';
+  document.getElementById('cors-banner').style.display  = 'none';
+  document.getElementById('progressLog').innerHTML = '';
+  setProgress(0, keywords.length, '');
+
+  for(let i = 0; i < keywords.length; i++){
+    if(shouldStop){ addLog('中止查詢', 'err'); break; }
+    const kw = keywords[i];
+    setProgress(i, keywords.length, kw);
+    addLog(`查詢中：${kw}`, 'running');
+
+    try {
+      const url = proxyUrl + '?q=' + encodeURIComponent(kw);
+      const resp = await fetchWithTimeout(url, timeoutMs);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const json = await resp.json();
+
+      if(!json.ok){
+        addLog(`❌ ${kw}：${json.error || '查詢失敗'}`, 'err');
+      } else {
+        const rows = parseGovHtml(json.html, kw);
+        if(rows.length === 0){
+          addLog(`⚪ ${kw}：查無資料`, 'ok');
+        } else {
+          rows.forEach(r => allResults.push(r));
+          addLog(`✅ ${kw}：找到 ${rows.length} 筆`, 'ok');
+        }
+      }
+    } catch(err){
+      if(err.name === 'AbortError'){
+        addLog(`⏱ ${kw}：逾時`, 'err');
+      } else {
+        addLog(`❌ ${kw}：${err.message}`, 'err');
+        // If it looks like a CORS error
+        if(err.message.includes('Failed to fetch') || err.message.includes('NetworkError')){
+          document.getElementById('cors-banner').style.display = 'block';
+        }
+      }
+    }
+
+    // Small delay between requests to be polite
+    if(i < keywords.length - 1) await sleep(600);
+  }
+
+  setProgress(keywords.length, keywords.length, '查詢完成');
+  renderResults();
+  isRunning = false;
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('stopBtn').style.display = 'none';
+}
+
+function stopQuery(){
+  shouldStop = true;
+  showToast('正在中止…');
+}
+
+function setProgress(done, total, current){
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `${done} / ${total}`;
+  document.getElementById('progressTxt').textContent   = current ? `查詢中：${current}` : (done===total ? '✅ 查詢完成' : '準備中…');
+}
+
+function addLog(msg, cls){
+  const log = document.getElementById('progressLog');
+  const el  = document.createElement('div');
+  el.className = 'log-item ' + (cls||'');
+  el.textContent = msg;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ─── HTML parser ──────────────────────────────────────────────
+function parseGovHtml(html, keyword){
+  const results = [];
+  if(!html) return results;
+
+  try {
+    const parser  = new DOMParser();
+    const doc     = parser.parseFromString(html, 'text/html');
+    const tables  = doc.querySelectorAll('table');
+
+    for(const table of tables){
+      const rows = table.querySelectorAll('tr');
+      if(rows.length < 2) continue;
+
+      // Detect header row
+      const headerCells = rows[0].querySelectorAll('th,td');
+      const headers = Array.from(headerCells).map(c => c.textContent.trim());
+
+      // Find column indices
+      const ci = findColumnIndices(headers);
+      if(!ci) continue; // Not the data table we want
+
+      // Parse data rows
+      for(let r = 1; r < rows.length; r++){
+        const cells = rows[r].querySelectorAll('td,th');
+        if(cells.length === 0) continue;
+
+        const getText = i => (i >= 0 && cells[i]) ? cells[i].textContent.trim() : '';
+        const getLink = i => {
+          if(i < 0 || !cells[i]) return '';
+          const a = cells[i].querySelector('a');
+          return a ? (a.href || a.getAttribute('href') || '') : '';
+        };
+
+        const row = {
+          keyword:   keyword,
+          name:      getText(ci.name),
+          org:       getText(ci.org),
+          type:      getText(ci.type),
+          sedan:     getText(ci.sedan)   || '0',
+          sedanvan:  getText(ci.sedanvan)|| '0',
+          truck:     getText(ci.truck)   || '0',
+          detailUrl: getLink(ci.detail),
+          detailTxt: getText(ci.detail)
+        };
+
+        // Skip empty rows
+        if(!row.name && !row.org) continue;
+        results.push(row);
+      }
+
+      if(results.length > 0) break; // Found the right table
+    }
+
+    // Fallback: try to find data even if column names differ
+    if(results.length === 0){
+      results.push(...fallbackParse(doc, keyword));
+    }
+
+  } catch(e) {
+    console.warn('parseGovHtml error:', e);
+  }
+
+  return results;
+}
+
+function findColumnIndices(headers){
+  // Map common column name variants (government sites sometimes differ)
+  const patterns = {
+    name:     [/公司名稱/, /名稱/, /company/i],
+    org:      [/管轄/, /單位/, /監理/],
+    type:     [/營業種類/, /種類/, /類別/],
+    sedan:    [/短租小客車/, /小客車/],
+    sedanvan: [/短租小客貨車/, /小客貨車/],
+    truck:    [/短租小貨車/, /小貨車/],
+    detail:   [/詳細/, /detail/i, /查看/]
+  };
+
+  const ci = {};
+  let matched = 0;
+
+  for(const [key, pats] of Object.entries(patterns)){
+    ci[key] = -1;
+    for(let i = 0; i < headers.length; i++){
+      if(pats.some(p => p.test(headers[i]))){
+        ci[key] = i;
+        matched++;
+        break;
+      }
+    }
+  }
+
+  // Need at least name + one vehicle count column to be considered a match
+  if(ci.name >= 0 && (ci.sedan >= 0 || ci.truck >= 0)) return ci;
+  // Or at least 4 columns matched
+  if(matched >= 4) return ci;
+  return null;
+}
+
+function fallbackParse(doc, keyword){
+  // Generic fallback: find the largest table with ≥ 5 columns
+  const tables = doc.querySelectorAll('table');
+  let best = null, bestCols = 0;
+  for(const t of tables){
+    const firstRow = t.querySelector('tr');
+    if(!firstRow) continue;
+    const cols = firstRow.querySelectorAll('th,td').length;
+    if(cols > bestCols){ best = t; bestCols = cols; }
+  }
+  if(!best || bestCols < 4) return [];
+
+  const rows = best.querySelectorAll('tr');
+  const results = [];
+  for(let r = 1; r < rows.length; r++){
+    const cells = Array.from(rows[r].querySelectorAll('td,th'));
+    if(cells.length < 3) continue;
+    const texts = cells.map(c => c.textContent.trim());
+    // Skip if looks like header
+    if(texts[0] && /[0-9]/.test(texts[0]) || texts.some(t => t && !/^[一-鿿\s\d（）()]+$/.test(t))) {
+      results.push({
+        keyword,
+        name: texts[0] || '',
+        org: texts[1] || '',
+        type: texts[2] || '',
+        sedan: texts[3] || '0',
+        sedanvan: texts[4] || '0',
+        truck: texts[5] || '0',
+        detailUrl: '',
+        detailTxt: texts[6] || ''
+      });
+    }
+  }
+  return results;
+}
+
+// ─── Render table ─────────────────────────────────────────────
+function renderResults(){
+  const card  = document.getElementById('resultsCard');
+  const tbody = document.getElementById('resultsBody');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('resultsCount');
+
+  card.style.display = '';
+  tbody.innerHTML    = '';
+  count.textContent  = allResults.length + ' 筆';
+
+  if(allResults.length === 0){
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  for(const r of allResults){
+    const tr = document.createElement('tr');
+    const sedanN    = parseInt(r.sedan)    || 0;
+    const sedanvanN = parseInt(r.sedanvan) || 0;
+    const truckN    = parseInt(r.truck)    || 0;
+
+    const detailCell = r.detailUrl
+      ? `<a href="${r.detailUrl}" target="_blank">查看</a>`
+      : (r.detailTxt || '—');
+
+    tr.innerHTML = `
+      <td><span class="kw-tag">${esc(r.keyword)}</span></td>
+      <td class="td-name">${esc(r.name)}</td>
+      <td class="td-org">${esc(r.org)}</td>
+      <td class="td-org">${esc(r.type)}</td>
+      <td class="td-num ${sedanN===0?'zero':''}">${sedanN.toLocaleString()}</td>
+      <td class="td-num ${sedanvanN===0?'zero':''}">${sedanvanN.toLocaleString()}</td>
+      <td class="td-num ${truckN===0?'zero':''}">${truckN.toLocaleString()}</td>
+      <td class="td-detail">${detailCell}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ─── Export ───────────────────────────────────────────────────
+function exportExcel(){
+  if(allResults.length === 0){ showToast('尚無資料'); return; }
+
+  const headers = ['搜尋關鍵字','公司名稱','管轄單位','營業種類','短租小客車數','短租小客貨車數','短租小貨車數'];
+  const data = [headers, ...allResults.map(r => [
+    r.keyword, r.name, r.org, r.type,
+    parseInt(r.sedan)||0, parseInt(r.sedanvan)||0, parseInt(r.truck)||0
+  ])];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Column widths
+  ws['!cols'] = [12,30,16,16,14,14,14].map(w => ({wch:w}));
+
+  XLSX.utils.book_append_sheet(wb, ws, '保有台數確認');
+  XLSX.writeFile(wb, `保有台數確認_${fmtDate()}.xlsx`);
+  showToast('Excel 已匯出');
+}
+
+function copyTable(){
+  if(allResults.length === 0){ showToast('尚無資料'); return; }
+
+  const headers = ['搜尋關鍵字','公司名稱','管轄單位','營業種類','短租小客車數','短租小客貨車數','短租小貨車數'];
+  const lines = [headers.join('\t')];
+  for(const r of allResults){
+    lines.push([
+      r.keyword, r.name, r.org, r.type,
+      parseInt(r.sedan)||0, parseInt(r.sedanvan)||0, parseInt(r.truck)||0
+    ].join('\t'));
+  }
+
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
+    showToast('已複製，可直接貼到 Excel');
+  }).catch(()=>{
+    // Fallback: select text
+    const ta = document.createElement('textarea');
+    ta.value = lines.join('\n');
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已複製，可直接貼到 Excel');
+  });
+}
+
+// ─── Utilities ───────────────�
